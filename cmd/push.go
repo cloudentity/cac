@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"cac/internal/cac"
-	"cac/internal/cac/storage"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac"
+	"github.com/cloudentity/cac/internal/cac/storage"
 	"github.com/go-openapi/strfmt"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"

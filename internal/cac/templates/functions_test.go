@@ -1,8 +1,8 @@
 package templates_test
 
 import (
-	"cac/internal/cac/logging"
-	"cac/internal/cac/templates"
+	"github.com/cloudentity/cac/internal/cac/logging"
+	"github.com/cloudentity/cac/internal/cac/templates"
 	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"

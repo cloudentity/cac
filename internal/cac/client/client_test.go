@@ -1,9 +1,9 @@
 package client_test
 
 import (
-	"cac/internal/cac/client"
 	"context"
 	acpclient "github.com/cloudentity/acp-client-go"
+	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/stretchr/testify/require"
 	"net/url"
 	"testing"

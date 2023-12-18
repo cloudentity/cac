@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cac/cmd"
+	"github.com/cloudentity/cac/cmd"
 	"os"
 )
 

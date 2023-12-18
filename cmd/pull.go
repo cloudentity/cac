@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"cac/internal/cac"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 )

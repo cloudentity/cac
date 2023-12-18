@@ -1,8 +1,8 @@
 package logging_test
 
 import (
-	"cac/internal/cac/logging"
 	"context"
+	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slog"
 	"testing"
