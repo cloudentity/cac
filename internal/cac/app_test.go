@@ -1,7 +1,7 @@
 package cac_test
 
 import (
-	"cac/internal/cac"
+	"github.com/cloudentity/cac/internal/cac"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

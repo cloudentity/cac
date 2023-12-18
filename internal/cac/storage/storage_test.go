@@ -1,9 +1,9 @@
 package storage_test
 
 import (
-	"cac/internal/cac/storage"
 	"encoding/json"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/storage"
 	"github.com/go-openapi/strfmt"
 	"github.com/imdario/mergo"
 	"github.com/stretchr/testify/require"

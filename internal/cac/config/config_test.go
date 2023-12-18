@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	"cac/internal/cac/config"
+	"github.com/cloudentity/cac/internal/cac/config"
 	"github.com/stretchr/testify/require"
 	"net/url"
 	"testing"

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"cac/internal/cac/templates"
+	"github.com/cloudentity/cac/internal/cac/templates"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"

@@ -1,10 +1,10 @@
 package cac
 
 import (
-	"cac/internal/cac/client"
-	"cac/internal/cac/config"
-	"cac/internal/cac/logging"
-	"cac/internal/cac/storage"
+	"github.com/cloudentity/cac/internal/cac/client"
+	"github.com/cloudentity/cac/internal/cac/config"
+	"github.com/cloudentity/cac/internal/cac/logging"
+	"github.com/cloudentity/cac/internal/cac/storage"
 	"golang.org/x/exp/slog"
 )
 

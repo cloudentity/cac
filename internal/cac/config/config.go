@@ -1,10 +1,10 @@
 package config
 
 import (
-	"cac/internal/cac/client"
-	"cac/internal/cac/logging"
-	"cac/internal/cac/storage"
 	"fmt"
+	"github.com/cloudentity/cac/internal/cac/client"
+	"github.com/cloudentity/cac/internal/cac/logging"
+	"github.com/cloudentity/cac/internal/cac/storage"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slog"
