@@ -1,0 +1,5 @@
+name: 'Cloudentity CAC'
+description: 'Manage Cloudentity configuration as code'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
