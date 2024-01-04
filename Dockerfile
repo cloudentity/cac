@@ -1,5 +1,17 @@
-FROM golang:1.21
+FROM golang:1.21 AS build
 
-RUN go install github.com/cloudentity/cac@dev
+WORKDIR /app
 
-ENTRYPOINT ["/go/bin/cac"]
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o cac .
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=build /app/cac .
+
+ENTRYPOINT ["/app/cac"]
