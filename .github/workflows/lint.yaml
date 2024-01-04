@@ -6,9 +6,6 @@ on:
       - dev
   pull_request:
 
-permissions:
-  contents: read
-
 jobs:
   golangci:
     runs-on: ubuntu-latest
