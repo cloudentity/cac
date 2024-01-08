@@ -18,14 +18,14 @@ var (
 	DefaultConfig = Configuration{
 		Client:  client.DefaultConfig,
 		Logging: logging.DefaultLoggingConfig,
-		Storage: storage.DefaultConfig,
+		Storage: storage.DefaultMultiStorageConfig,
 	}
 )
 
 type Configuration struct {
-	Client  client.Configuration  `json:"client"`
-	Logging logging.Configuration `json:"logging"`
-	Storage storage.Configuration `json:"storage"`
+	Client  client.Configuration              `json:"client"`
+	Logging logging.Configuration             `json:"logging"`
+	Storage storage.MultiStorageConfiguration `json:"storage"`
 }
 
 func InitConfig(path string) (_ *Configuration, err error) {

@@ -17,17 +17,24 @@ var DefaultConfig = Configuration{
 	DirPath: "data",
 }
 
-func InitStorage(config Configuration) *Storage {
-	return &Storage{
+func InitStorage(config Configuration) *SingleStorage {
+	return &SingleStorage{
 		Config: config,
 	}
 }
 
-type Storage struct {
+type Storage interface {
+	Store(workspace string, data *models.TreeServer) error
+	Read(workspace string) (models.TreeServer, error)
+}
+
+type SingleStorage struct {
 	Config Configuration
 }
 
-func (s *Storage) Store(workspace string, data *models.TreeServer) error {
+var _ Storage = &SingleStorage{}
+
+func (s *SingleStorage) Store(workspace string, data *models.TreeServer) error {
 	var (
 		workspacePath = s.workspacePath(workspace)
 		err           error
@@ -126,7 +133,7 @@ func (s *Storage) Store(workspace string, data *models.TreeServer) error {
 	return nil
 }
 
-func (s *Storage) Read(workspace string) (models.TreeServer, error) {
+func (s *SingleStorage) Read(workspace string) (models.TreeServer, error) {
 	var (
 		server = models.TreeServer{
 			Clients:              models.TreeClients{},
@@ -235,11 +242,11 @@ func (s *Storage) Read(workspace string) (models.TreeServer, error) {
 	return server, nil
 }
 
-func (s *Storage) workspacePath(workspace string) string {
+func (s *SingleStorage) workspacePath(workspace string) string {
 	return filepath.Join(s.Config.DirPath, "workspaces", workspace)
 }
 
-func (s *Storage) storeServer(workspace string, data *models.TreeServer) error {
+func (s *SingleStorage) storeServer(workspace string, data *models.TreeServer) error {
 	var (
 		path   = filepath.Join(s.workspacePath(workspace), "server")
 		server adminmodels.Server

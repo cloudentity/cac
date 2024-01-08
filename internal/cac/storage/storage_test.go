@@ -440,34 +440,41 @@ module.exports = async function(context) {
 
 	for _, tc := range tcs {
 		t.Run(tc.desc, func(t *testing.T) {
-			st := storage.InitStorage(storage.Configuration{
-				DirPath: t.TempDir(),
+			st, err := storage.InitMultiStorage(storage.MultiStorageConfiguration{
+				DirPath: []string{t.TempDir(), t.TempDir()},
 			})
 
-			err := st.Store("demo", tc.data)
+			require.NoError(t, err)
+
+			err = st.Store("demo", tc.data)
 			require.NoError(t, err)
 
 			var files []string
-			err = filepath.Walk(st.Config.DirPath, func(path string, info fs.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
 
-				if !info.IsDir() {
-					if path, err = filepath.Rel(st.Config.DirPath, path); err != nil {
+			// refactor the code below to loop over dirpath
+			for _, dir := range st.Config.DirPath {
+				err = filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+					if err != nil {
 						return err
 					}
 
-					files = append(files, path)
-				}
-				return nil
-			})
+					if !info.IsDir() {
+						if path, err = filepath.Rel(dir, path); err != nil {
+							return err
+						}
+
+						files = append(files, path)
+					}
+					return nil
+				})
+			}
 
 			require.NoError(t, err)
 			require.ElementsMatch(t, slices.Compact(append(tc.files, "workspaces/demo/server.yaml")), files)
 
 			for _, f := range tc.files {
-				bts, err := os.ReadFile(filepath.Join(st.Config.DirPath, f))
+				// using first dirpath as multi storage stores everything there
+				bts, err := os.ReadFile(filepath.Join(st.Config.DirPath[0], f))
 				require.NoError(t, err)
 
 				if tc.assert != nil {
