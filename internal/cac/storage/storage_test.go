@@ -451,7 +451,6 @@ module.exports = async function(context) {
 
 			var files []string
 
-			// refactor the code below to loop over dirpath
 			for _, dir := range st.Config.DirPath {
 				err = filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 					if err != nil {

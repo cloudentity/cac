@@ -75,7 +75,7 @@ func InitConfig(path string) (_ *Configuration, err error) {
 func configureDecoder(config *mapstructure.DecoderConfig) {
 	config.TagName = "json"
 	config.WeaklyTypedInput = true
-	config.DecodeHook = mapstructure.ComposeDecodeHookFunc(urlDecoder(), timeDecoder())
+	config.DecodeHook = mapstructure.ComposeDecodeHookFunc(urlDecoder(), timeDecoder(), stringToSlice())
 }
 
 func urlDecoder() mapstructure.DecodeHookFunc {
@@ -123,5 +123,23 @@ func timeDecoder() mapstructure.DecodeHookFunc {
 		default:
 			return data, nil
 		}
+	}
+}
+
+func stringToSlice() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Kind,
+		t reflect.Kind,
+		data interface{}) (interface{}, error) {
+		if f != reflect.String || t != reflect.Slice {
+			return data, nil
+		}
+
+		raw := data.(string)
+		if raw == "" {
+			return []string{}, nil
+		}
+
+		return strings.Split(raw, ","), nil
 	}
 }

@@ -84,7 +84,7 @@ Merge configuration from a directory structure and push it into Cloudentity.
 
 #### Push configuration from multiple directories
 
-To push configration from multiple directories, either pass an array to the `storage.dir_path` or use `STORAGE_DIR_PATH` env variable multiple times.
+To push configration from multiple directories, either pass an array to the `storage.dir_path` or use `STORAGE_DIR_PATH` with multiple paths split by a comma.
 
 ```bash
 cac --config examples/e2e/config.yaml push --workspace cdr_australia-demo-c67evw7mj4
