@@ -25,7 +25,7 @@ func InitApp(configPath string) (app *Application, err error) {
 		return app, err
 	}
 
-	slog.Info("config", "c", app.Config.Client)
+	slog.Debug("config", "c", app.Config.Client)
 
 	if app.Client, err = client.InitClient(app.Config.Client); err != nil {
 		return app, err
@@ -35,7 +35,7 @@ func InitApp(configPath string) (app *Application, err error) {
 		return app, err
 	}
 
-	slog.With("app", app).Debug("Initiated application")
+	slog.Info("Initiated application")
 
 	return app, nil
 }
