@@ -11,7 +11,7 @@ import (
 type Application struct {
 	Config  *config.Configuration
 	Client  *client.Client
-	Storage *storage.Storage
+	Storage storage.Storage
 }
 
 func InitApp(configPath string) (app *Application, err error) {
@@ -25,15 +25,17 @@ func InitApp(configPath string) (app *Application, err error) {
 		return app, err
 	}
 
-	slog.Info("config", "c", app.Config.Client)
+	slog.Debug("config", "c", app.Config.Client)
 
 	if app.Client, err = client.InitClient(app.Config.Client); err != nil {
 		return app, err
 	}
 
-	app.Storage = storage.InitStorage(app.Config.Storage)
+	if app.Storage, err = storage.InitMultiStorage(app.Config.Storage); err != nil {
+		return app, err
+	}
 
-	slog.With("app", app).Debug("Initiated application")
+	slog.Info("Initiated application")
 
 	return app, nil
 }
