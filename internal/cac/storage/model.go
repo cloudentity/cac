@@ -8,7 +8,7 @@ func NewWithID[T any](id string, data T) *WithID[T] {
 }
 
 type WithID[T any] struct {
-	ID string `json:"id" yaml:"id"`
+	ID string `json:"id"`
 	// nolint
-	Other T `json:",inline,squash" yaml:",inline"`
+	Other T `json:",inline,squash"`
 }
