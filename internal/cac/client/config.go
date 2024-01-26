@@ -9,9 +9,11 @@ type Configuration struct {
 	Insecure bool `json:"insecure"`
 }
 
-var DefaultConfig = Configuration{
-	Insecure: false,
-	Config: acpclient.Config{
-		Scopes: []string{"manage_configuration"},
-	},
+var DefaultConfig = func() *Configuration {
+	return &Configuration{
+		Insecure: false,
+		Config: acpclient.Config{
+			Scopes: []string{"manage_configuration"},
+		},
+	}
 }

@@ -1,9 +1,12 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	adminmodels "github.com/cloudentity/acp-client-go/clients/admin/models"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slog"
 	"path/filepath"
@@ -17,24 +20,25 @@ var DefaultConfig = Configuration{
 	DirPath: "data",
 }
 
-func InitStorage(config Configuration) *SingleStorage {
+func InitStorage(config *Configuration) *SingleStorage {
 	return &SingleStorage{
 		Config: config,
 	}
 }
 
 type Storage interface {
-	Store(workspace string, data *models.TreeServer) error
-	Read(workspace string) (models.TreeServer, error)
+	Write(ctx context.Context, workspace string, data *models.TreeServer) error
+	Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error)
 }
 
 type SingleStorage struct {
-	Config Configuration
+	Config *Configuration
 }
 
 var _ Storage = &SingleStorage{}
+var _ api.Source = &SingleStorage{}
 
-func (s *SingleStorage) Store(workspace string, data *models.TreeServer) error {
+func (s *SingleStorage) Write(ctx context.Context, workspace string, data *models.TreeServer) error {
 	var (
 		workspacePath = s.workspacePath(workspace)
 		err           error
@@ -133,9 +137,9 @@ func (s *SingleStorage) Store(workspace string, data *models.TreeServer) error {
 	return nil
 }
 
-func (s *SingleStorage) Read(workspace string) (models.TreeServer, error) {
+func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error) {
 	var (
-		server = models.TreeServer{
+		server = &models.TreeServer{
 			Clients:              models.TreeClients{},
 			Idps:                 models.TreeIDPs{},
 			CustomApps:           models.TreeCustomApps{},
@@ -152,7 +156,7 @@ func (s *SingleStorage) Read(workspace string) (models.TreeServer, error) {
 		err  error
 	)
 
-	if err = readFile(filepath.Join(path, "server"), &server); err != nil {
+	if err = readFile(filepath.Join(path, "server"), server); err != nil {
 		return server, err
 	}
 
@@ -242,6 +246,10 @@ func (s *SingleStorage) Read(workspace string) (models.TreeServer, error) {
 	return server, nil
 }
 
+func (s *SingleStorage) String() string {
+	return fmt.Sprintf("storage: %v", s.Config.DirPath)
+}
+
 func (s *SingleStorage) workspacePath(workspace string) string {
 	return filepath.Join(s.Config.DirPath, "workspaces", workspace)
 }
@@ -263,7 +271,9 @@ func (s *SingleStorage) storeServer(workspace string, data *models.TreeServer) e
 		return err
 	}
 
-	if err = writeFile(NewWithID(workspace, server), path); err != nil {
+	server.ID = workspace
+
+	if err = writeFile(server, path); err != nil {
 		return err
 	}
 

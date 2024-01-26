@@ -33,7 +33,7 @@ func TestInitLogging(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		require.NoError(t, logging.InitLogging(tc.config))
+		require.NoError(t, logging.InitLogging(&tc.config))
 		handler := slog.Default().Handler()
 		require.IsType(t, tc.handler, handler)
 		require.True(t, handler.Enabled(context.Background(), tc.level))

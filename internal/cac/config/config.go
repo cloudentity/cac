@@ -1,44 +1,86 @@
 package config
 
 import (
-	"fmt"
 	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slog"
-	"net/url"
-	"reflect"
 	"strings"
-	"time"
 )
 
 var (
-	DefaultConfig = Configuration{
-		Client:  client.DefaultConfig,
-		Logging: logging.DefaultLoggingConfig,
-		Storage: storage.DefaultMultiStorageConfig,
+	DefaultConfig = func() Configuration {
+		return Configuration{
+			Client:  client.DefaultConfig(),
+			Storage: storage.DefaultMultiStorageConfig(),
+			Logging: logging.DefaultLoggingConfig(),
+		}
 	}
 )
 
-type Configuration struct {
-	Client  client.Configuration              `json:"client"`
-	Logging logging.Configuration             `json:"logging"`
-	Storage storage.MultiStorageConfiguration `json:"storage"`
+type RootConfiguration struct {
+	// nolint
+	Default Configuration `json:",inline,squash"` // default profile
+
+	Profiles map[string]Configuration `json:"profiles"`
 }
 
-func InitConfig(path string) (_ *Configuration, err error) {
+var ErrUnknownProfile = errors.New("profile not found")
+
+func (c *RootConfiguration) ForProfile(profile string) (*Configuration, error) {
+	if profile == "" || strings.ToLower(profile) == "default" {
+		return &c.Default, nil
+	}
+
+	if profileConfig, ok := c.Profiles[profile]; ok {
+		return &profileConfig, nil
+	}
+
+	return nil, ErrUnknownProfile
+}
+
+type Configuration struct {
+	Name    string                             `json:"name"`
+	Logging *logging.Configuration             `json:"logging"`
+	Client  *client.Configuration              `json:"client"`
+	Storage *storage.MultiStorageConfiguration `json:"storage"`
+}
+
+func (c *Configuration) SetImplicitValues(name string, defaultConfig Configuration) {
+	if c.Name == "" {
+		c.Name = name
+	}
+
+	if c.Logging == nil {
+		c.Logging = defaultConfig.Logging
+	}
+
+	if c.Client == nil {
+		c.Client = defaultConfig.Client
+	}
+
+	if c.Storage == nil {
+		c.Storage = defaultConfig.Storage
+	}
+}
+
+func InitConfig(path string) (_ *RootConfiguration, err error) {
 	var (
 		decoder    *mapstructure.Decoder
 		decodedMap map[string]any
-		config     = DefaultConfig
+		config     = &RootConfiguration{}
 		dconf      = mapstructure.DecoderConfig{
 			Result: &decodedMap,
 		}
 	)
 
-	configureDecoder(&dconf)
+	config.Default.SetImplicitValues("default", DefaultConfig())
+
+	utils.ConfigureDecoder(&dconf)
 	v := viper.GetViper()
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -63,83 +105,15 @@ func InitConfig(path string) (_ *Configuration, err error) {
 		}
 	}
 
-	if err := v.Unmarshal(&config, configureDecoder); err != nil {
+	if err := v.Unmarshal(&config, utils.ConfigureDecoder); err != nil {
 		return nil, err
 	}
 
 	slog.With("config", config).Debug("Initiated configuration")
 
-	return &config, nil
-}
-
-func configureDecoder(config *mapstructure.DecoderConfig) {
-	config.TagName = "json"
-	config.WeaklyTypedInput = true
-	config.DecodeHook = mapstructure.ComposeDecodeHookFunc(urlDecoder(), timeDecoder(), stringToSlice())
-}
-
-func urlDecoder() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if t != reflect.TypeOf(url.URL{}) {
-			return data, nil
-		}
-
-		var (
-			str string
-			err error
-			ok  bool
-			u   *url.URL
-		)
-
-		if str, ok = data.(string); !ok {
-			return nil, fmt.Errorf("cannot map %v", reflect.TypeOf(data))
-		}
-
-		if u, err = url.Parse(str); err != nil {
-			return nil, err
-		}
-
-		return u, nil
+	for name, profile := range config.Profiles {
+		profile.SetImplicitValues(name, config.Default)
 	}
-}
 
-func timeDecoder() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Type,
-		t reflect.Type,
-		data interface{},
-	) (interface{}, error) {
-		if t != reflect.TypeOf(time.Time{}) {
-			return data, nil
-		}
-
-		switch f.Kind() {
-		case reflect.String:
-			return time.Parse(time.RFC3339, data.(string))
-		case reflect.Float64:
-			return time.Unix(0, int64(data.(float64))*int64(time.Millisecond)), nil
-		case reflect.Int64:
-			return time.Unix(0, data.(int64)*int64(time.Millisecond)), nil
-		default:
-			return data, nil
-		}
-	}
-}
-
-func stringToSlice() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Kind,
-		t reflect.Kind,
-		data interface{}) (interface{}, error) {
-		if f != reflect.String || t != reflect.Slice {
-			return data, nil
-		}
-
-		raw := data.(string)
-		if raw == "" {
-			return []string{}, nil
-		}
-
-		return strings.Split(raw, ","), nil
-	}
+	return config, nil
 }

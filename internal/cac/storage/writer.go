@@ -2,16 +2,13 @@ package storage
 
 import (
 	"fmt"
-	"github.com/goccy/go-yaml"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/ghetzel/go-stockutil/maputil"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/exp/slog"
 )
 
@@ -21,6 +18,7 @@ type FileNameProvider[T any] func(id string, it T) string
 func writeFiles[T any](data map[string]T, parent string, fileName FileNameProvider[T]) error {
 	var (
 		writer Writer[*WithID[T]]
+		names  = utils.NewSet[string]()
 		err    error
 	)
 
@@ -38,6 +36,15 @@ func writeFiles[T any](data map[string]T, parent string, fileName FileNameProvid
 		}
 
 		name := fileName(id, it)
+		conflicts := 0
+
+		if names.Has(name) {
+			conflicts++
+			name += fmt.Sprintf("-%d", conflicts+1)
+		}
+
+		names.Add(name)
+
 		if err = writer(name, NewWithID(id, it)); err != nil {
 			return err
 		}
@@ -80,30 +87,13 @@ func YAMLWriter[T any](dirPath string) (Writer[T], error) {
 
 	return func(name string, it T) error {
 		var (
-			m       = make(map[string]any)
-			bts     []byte
-			decoder *mapstructure.Decoder
-			err     error
+			bts []byte
+			err error
 		)
 
 		name += ".yaml"
 
-		if decoder, err = mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-			Result:  &m,
-			TagName: "json",
-		}); err != nil {
-			return err
-		}
-
-		if err = decoder.Decode(it); err != nil {
-			return err
-		}
-
-		if m, err = maputil.Compact(m); err != nil {
-			return err
-		}
-
-		if bts, err = yaml.Marshal(m); err != nil {
+		if bts, err = utils.ToYaml(it); err != nil {
 			return err
 		}
 
@@ -179,24 +169,7 @@ func createMultilineIncludeTemplate(str string, indent int) string {
 var multilineTemplateRegexp = regexp.MustCompile(`⌘⌘(\d+) ([^⌘]+)⌘⌘`)
 
 func postProcessMultilineTemplates(bts []byte) []byte {
-	matches := multilineTemplateRegexp.FindSubmatch(bts)
-	spaces := ""
-	indent := 0
-
-	if len(matches) > 1 {
-		var (
-			indentBts = matches[1]
-			err       error
-		)
-
-		if indent, err = strconv.Atoi(string(indentBts)); err != nil {
-			indent = 0
-		}
-
-		spaces = strings.Repeat(" ", indent)
-	}
-
-	bts = multilineTemplateRegexp.ReplaceAll(bts, []byte(fmt.Sprintf("|-\n%s{{ $2 | indent $1 }}", spaces)))
+	bts = multilineTemplateRegexp.ReplaceAll(bts, []byte("{{ $2 | nindent $1 }}"))
 
 	return bts
 }

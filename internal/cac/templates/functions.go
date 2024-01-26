@@ -15,6 +15,7 @@ func functions(t *Template) template.FuncMap {
 	funcMap := sprig.TxtFuncMap()
 	funcMap["include"] = include(t)
 	funcMap["env"] = env
+	funcMap["nindent"] = nindent
 	return funcMap
 }
 
@@ -52,4 +53,9 @@ func env(key string) (any, error) {
 	}
 
 	return env, nil
+}
+
+func nindent(spaces int, v string) string {
+	pad := strings.Repeat(" ", spaces)
+	return "|-\n" + pad + strings.Replace(v, "\n", "\n"+pad, -1)
 }

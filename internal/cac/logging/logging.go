@@ -5,8 +5,10 @@ import (
 	"os"
 )
 
-var DefaultLoggingConfig = Configuration{
-	Level: "info",
+var DefaultLoggingConfig = func() *Configuration {
+	return &Configuration{
+		Level: "info",
+	}
 }
 
 type Configuration struct {
@@ -21,14 +23,14 @@ const (
 	LogFormatJSON LogFormat = "json"
 )
 
-func InitLogging(config Configuration) (err error) {
+func InitLogging(config *Configuration) (err error) {
 	var (
 		levelRef = new(slog.LevelVar)
 		handler  slog.Handler
 		opts     = &slog.HandlerOptions{
-			AddSource: true,
-			Level:     levelRef,
+			Level: levelRef,
 		}
+		logger = slog.Default()
 	)
 
 	if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil {
@@ -42,7 +44,7 @@ func InitLogging(config Configuration) (err error) {
 		handler = slog.NewTextHandler(os.Stdout, opts)
 	}
 
-	logger := slog.New(handler)
+	logger = slog.New(handler)
 	slog.SetDefault(logger)
 
 	slog.With("logger", logger).Debug("Initiated logging")

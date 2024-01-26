@@ -7,3 +7,12 @@ client:
   client_secret: -T1siRsUvmE58hB-2I_fWQZW1lLpk_gK76ZziR8Y9QY
 storage:
   dir_path: "/tmp/e2e-data"
+
+profiles:
+  stage:
+    client:
+      issuer_url: https://other.eu.authz.cloudentity.io/postmance/system
+      client_id: aaaaaaaaaaaaa
+      client_secret: bbbbbbbb
+    storage:
+      dir_path: "/tmp/other"

@@ -3,9 +3,12 @@ package client
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/acp-client-go/clients/hub/client/workspace_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/go-openapi/runtime"
 	"github.com/mitchellh/mapstructure"
@@ -17,7 +20,15 @@ type Client struct {
 	acp *acpclient.Client
 }
 
-func InitClient(config Configuration) (c *Client, err error) {
+func WithSecrets(secrets bool) api.SourceOpt {
+	return func(o *api.Options) {
+		o.Secrets = secrets
+	}
+}
+
+var _ api.Source = &Client{}
+
+func InitClient(config *Configuration) (c *Client, err error) {
 	var (
 		acp acpclient.Client
 	)
@@ -43,17 +54,22 @@ func InitClient(config Configuration) (c *Client, err error) {
 	}, nil
 }
 
-func (c *Client) PullWorkspaceConfiguration(ctx context.Context, workspace string, secrets bool) (*models.TreeServer, error) {
+func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error) {
 	var (
-		ok  *workspace_configuration.ExportWorkspaceConfigOK
-		err error
+		ok      *workspace_configuration.ExportWorkspaceConfigOK
+		options = &api.Options{}
+		err     error
 	)
+
+	for _, opt := range opts {
+		opt(options)
+	}
 
 	if ok, err = c.acp.Hub.WorkspaceConfiguration.
 		ExportWorkspaceConfig(workspace_configuration.
 			NewExportWorkspaceConfigParams().
 			WithContext(ctx).
-			WithWithCredentials(&secrets).
+			WithWithCredentials(&options.Secrets).
 			WithWid(workspace), nil); err != nil {
 		return nil, err
 	}
@@ -61,7 +77,7 @@ func (c *Client) PullWorkspaceConfiguration(ctx context.Context, workspace strin
 	return ok.Payload, nil
 }
 
-func (c *Client) PushWorkspaceConfiguration(ctx context.Context, workspace string, input *models.TreeServer) error {
+func (c *Client) Write(ctx context.Context, workspace string, input *models.TreeServer) error {
 	var (
 		mode    = "update"
 		out     = models.Rfc7396PatchOperation{}
@@ -69,10 +85,7 @@ func (c *Client) PushWorkspaceConfiguration(ctx context.Context, workspace strin
 		err     error
 	)
 
-	if decoder, err = mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &out,
-		TagName: "json",
-	}); err != nil {
+	if decoder, err = utils.Decoder(&out); err != nil {
 		return err
 	}
 
@@ -97,4 +110,8 @@ func (c *Client) PushWorkspaceConfiguration(ctx context.Context, workspace strin
 	}
 
 	return nil
+}
+
+func (c *Client) String() string {
+	return fmt.Sprintf("client: %v", c.acp.Config.IssuerURL)
 }

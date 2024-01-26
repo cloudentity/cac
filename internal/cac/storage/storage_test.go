@@ -1,11 +1,12 @@
 package storage_test
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/diff"
+	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
 	"github.com/go-openapi/strfmt"
-	"github.com/imdario/mergo"
 	"github.com/stretchr/testify/require"
 	"io/fs"
 	"os"
@@ -15,6 +16,8 @@ import (
 	"testing"
 	"time"
 )
+
+var dateTime, _ = strfmt.ParseDateTime("2024-01-23T23:19:30.004+01:00")
 
 func TestStorage(t *testing.T) {
 	tcs := []struct {
@@ -33,9 +36,33 @@ func TestStorage(t *testing.T) {
 				"workspaces/demo/server.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: demo
+				require.YAMLEq(t, `access_token_ttl: 10m0s
+authorization_code_ttl: 0s
+backchannel_token_delivery_modes_supported: []
+backchannel_user_code_parameter_supported: false
+cookie_max_age: 0s
+enable_idp_discovery: false
+enable_legacy_clients_with_no_software_statement: false
+enable_quick_access: false
+enable_trust_anchor: false
+enforce_id_token_encryption: false
+enforce_pkce: false
+enforce_pkce_for_public_clients: false
+grant_types: []
+id: demo
+id_token_ttl: 0s
 name: demo workspace
-access_token_ttl: 10m0s`, string(bts))
+pushed_authorization_request_ttl: 0s
+refresh_token_ttl: 0s
+require_pushed_authorization_requests: false
+rotated_secrets: []
+subject_identifier_types: []
+template: false
+tenant_id: ""
+token_endpoint_auth_methods: []
+token_endpoint_auth_signing_alg_values: []
+token_endpoint_authn_methods: []
+version: 0`, string(bts))
 			},
 		},
 		{
@@ -51,8 +78,29 @@ access_token_ttl: 10m0s`, string(bts))
 				"workspaces/demo/clients/Demo_Portal.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: demo-demo
-client_name: Demo Portal`, string(bts))
+				require.YAMLEq(t, `application_types: []
+audience: []
+authorization_details_types: []
+backchannel_user_code_parameter: false
+client_id_issued_at: 0
+client_name: Demo Portal
+client_secret_expires_at: 0
+created_at: "0001-01-01T00:00:00.000Z"
+dpop_bound_access_tokens: false
+dynamically_registered: false
+grant_types: []
+hashed_rotated_secrets: []
+id: demo-demo
+post_logout_redirect_uris: []
+request_uris: []
+require_pushed_authorization_requests: false
+rotated_secrets: []
+scopes: []
+system: false
+tls_client_certificate_bound_access_tokens: false
+trusted: false
+updated_at: "0001-01-01T00:00:00.000Z"
+use_custom_token_ttls: false`, string(bts))
 			},
 		},
 		{
@@ -68,8 +116,13 @@ client_name: Demo Portal`, string(bts))
 				"workspaces/demo/idps/Some_IDP.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: some-idp
-name: Some IDP`, string(bts))
+				require.YAMLEq(t, `disabled: false
+display_order: 0
+hidden: false
+id: some-idp
+name: Some IDP
+static_amr: []
+version: 0`, string(bts))
 			},
 		},
 		{
@@ -93,7 +146,9 @@ name: Some IDP`, string(bts))
 				require.YAMLEq(t, `access_token:
   customer_id:
     mapping: customer_id
-    scopes: [customer]
+    opaque: false
+    scopes:
+    - customer
     source_path: customer_id
     source_type: authnCtx`, string(bts))
 			},
@@ -130,8 +185,10 @@ url: https://some-app.com`, string(bts))
 				"workspaces/demo/gateways/Some_Gateway.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: some-gateway
-name: "Some Gateway"`, string(bts))
+				require.YAMLEq(t, `create_and_bind_services_automatically: false
+id: some-gateway
+last_active: "0001-01-01T00:00:00.000Z"
+name: Some Gateway`, string(bts))
 			},
 		},
 		{
@@ -161,8 +218,12 @@ name: "Some Gateway"`, string(bts))
 				"workspaces/demo/pools/Some_Pool.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: some-pool
-name: "Some Pool"`, string(bts))
+				require.YAMLEq(t, `deleted: false
+id: some-pool
+identifier_case_insensitive: false
+name: Some Pool
+public_registration_allowed: false
+system: false`, string(bts))
 			},
 		},
 		{
@@ -184,8 +245,10 @@ name: "Some Pool"`, string(bts))
 			assert: func(t *testing.T, path string, bts []byte) {
 				require.YAMLEq(t, `some_scope:
   description: Some Scope
-  policy_execution_points: 
-    scope_user_grant: some_policy_id`, string(bts))
+  implicit: false
+  policy_execution_points:
+    scope_user_grant: some_policy_id
+  transient: false`, string(bts))
 			},
 		},
 		{
@@ -247,7 +310,9 @@ type: custom`, string(bts))
 			data: &models.TreeServer{
 				Services: models.TreeServices{
 					"some_service": models.TreeService{
-						Name: "Some Service",
+						Name:           "Some Service",
+						UpdatedAt:      dateTime,
+						CustomAudience: "some_custom_audience",
 						Scopes: models.TreeScopes{
 							"some_scope": models.TreeScope{
 								Description: "Some Scope",
@@ -265,11 +330,17 @@ type: custom`, string(bts))
 			assert: func(t *testing.T, path string, bts []byte) {
 				require.YAMLEq(t, `id: some_service
 name: Some Service
-scopes: 
+scopes:
   some_scope:
     description: Some Scope
+    implicit: false
     policy_execution_points:
-      scope_user_grant: some_policy_id`, string(bts))
+      scope_user_grant: some_policy_id
+    transient: false
+system: false
+custom_audience: some_custom_audience
+updated_at: "2024-01-23T23:19:30.004+01:00"
+with_specification: false`, string(bts))
 			},
 		},
 		{
@@ -300,9 +371,10 @@ scopes:
 				"workspaces/demo/webhooks/hook_id.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
-				require.YAMLEq(t, `id: hook_id
-active: true
-url: "https://example.com"`, string(bts))
+				require.YAMLEq(t, `active: true
+id: hook_id
+insecure: false
+url: https://example.com`, string(bts))
 			},
 		},
 		{
@@ -314,6 +386,7 @@ url: "https://example.com"`, string(bts))
 package acp.authz
 
 default allow = false
+
 `,
 						Language:   "rego",
 						PolicyName: "Some Rego Policy",
@@ -327,18 +400,19 @@ default allow = false
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
 				if strings.Contains(path, ".yaml") {
-					require.Equal(t, `definition: |-
-  {{ include "Some_Rego_Policy.rego" | indent 2 }}
+					require.Equal(t, `definition: {{ include "Some_Rego_Policy.rego" | nindent 2 }}
 id: some_policy
 language: rego
 policy_name: Some Rego Policy
 type: api
+validators: []
 `, string(bts))
 				} else {
 					require.Equal(t, `
 package acp.authz
 
 default allow = false
+
 `, string(bts))
 				}
 			},
@@ -380,33 +454,32 @@ default allow = false
 			assert: func(t *testing.T, path string, bts []byte) {
 				require.YAMLEq(t, `id: some_policy
 language: cloudentity
+policy_name: Some CE Policy
 type: api
-policy_name: "Some CE Policy"
 validators:
-  - recovery:
-      - type: mfa
-    conf:
-      fields:
-        - comparator: contains
-          field: login.verified_recovery_methods
-          value:
-          - mfa`, string(bts))
+- conf:
+    fields:
+    - comparator: contains
+      field: login.verified_recovery_methods
+      value:
+      - mfa
+  recovery:
+  - type: mfa
+`, string(bts))
 			},
 		},
 		{
-			desc: "js extensions",
+			desc: "js extensions (with tabs)",
 			data: &models.TreeServer{
 				Scripts: models.TreeScripts{
 					"some_script": models.TreeScript{
-						Body: `
-module.exports = async function(context) {
-      return {
-        access_token: {
-          x: "123"
-        }
-      };
-  }
-`,
+						Body: `module.exports = async function(context) {
+	return {
+		access_token: {
+			x: "123"
+		}
+	};
+}`,
 						Name: "Some Script",
 					},
 				},
@@ -417,21 +490,56 @@ module.exports = async function(context) {
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
 				if strings.Contains(path, ".yaml") {
-					require.Equal(t, `body: |-
-  {{ include "Some_Script.js" | indent 2 }}
+					require.Equal(t, `body: {{ include "Some_Script.js" | nindent 2 }}
 id: some_script
 name: Some Script
 `, string(bts))
 				} else {
-					require.Equal(t, `
-module.exports = async function(context) {
-      return {
-        access_token: {
-          x: "123"
-        }
-      };
-  }
+					require.Equal(t, `module.exports = async function(context) {
+	return {
+		access_token: {
+			x: "123"
+		}
+	};
+}`, string(bts))
+				}
+
+			},
+		},
+		{
+			desc: "js extensions (with spaces)",
+			data: &models.TreeServer{
+				Scripts: models.TreeScripts{
+					"some_script": models.TreeScript{
+						Body: `module.exports = async function(context) {
+  return {
+    access_token: {
+      x: "123"
+    }
+  };
+}`,
+						Name: "Some Script",
+					},
+				},
+			},
+			files: []string{
+				"workspaces/demo/scripts/Some_Script.yaml",
+				"workspaces/demo/scripts/Some_Script.js",
+			},
+			assert: func(t *testing.T, path string, bts []byte) {
+				if strings.Contains(path, ".yaml") {
+					require.Equal(t, `body: {{ include "Some_Script.js" | nindent 2 }}
+id: some_script
+name: Some Script
 `, string(bts))
+				} else {
+					require.Equal(t, `module.exports = async function(context) {
+  return {
+    access_token: {
+      x: "123"
+    }
+  };
+}`, string(bts))
 				}
 
 			},
@@ -440,13 +548,17 @@ module.exports = async function(context) {
 
 	for _, tc := range tcs {
 		t.Run(tc.desc, func(t *testing.T) {
-			st, err := storage.InitMultiStorage(storage.MultiStorageConfiguration{
+			logging.InitLogging(&logging.Configuration{
+				Level: "debug",
+			})
+
+			st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
 				DirPath: []string{t.TempDir(), t.TempDir()},
 			})
 
 			require.NoError(t, err)
 
-			err = st.Store("demo", tc.data)
+			err = st.Write(context.Background(), "demo", tc.data)
 			require.NoError(t, err)
 
 			var files []string
@@ -471,6 +583,7 @@ module.exports = async function(context) {
 			require.NoError(t, err)
 			require.ElementsMatch(t, slices.Compact(append(tc.files, "workspaces/demo/server.yaml")), files)
 
+			// checking if files written to fs have expected content
 			for _, f := range tc.files {
 				// using first dirpath as multi storage stores everything there
 				bts, err := os.ReadFile(filepath.Join(st.Config.DirPath[0], f))
@@ -481,34 +594,15 @@ module.exports = async function(context) {
 				}
 			}
 
-			// fill the server data to make the comparison easier
-			err = mergo.Merge(tc.data, models.TreeServer{
-				Clients:              models.TreeClients{},
-				Idps:                 models.TreeIDPs{},
-				CustomApps:           models.TreeCustomApps{},
-				Gateways:             models.TreeGateways{},
-				Pools:                models.TreePools{},
-				Webhooks:             models.TreeWebhooks{},
-				Scripts:              models.TreeScripts{},
-				Policies:             models.TreePolicies{},
-				Services:             models.TreeServices{},
-				ScopesWithoutService: models.TreeScopes{},
-				ServersBindings:      models.TreeServersBindings{},
-			})
-			require.NoError(t, err)
-
-			var readServer models.TreeServer
-			readServer, err = st.Read("demo")
+			var readServer *models.TreeServer
+			readServer, err = st.Read(context.Background(), "demo")
 
 			require.NoError(t, err)
 
-			serData, err := json.Marshal(tc.data)
+			// verifying if the data read from fs is the same as the provided test data
+			d, err := diff.Tree(tc.data, readServer)
 			require.NoError(t, err)
-
-			serReadServer, err := json.Marshal(readServer)
-			require.NoError(t, err)
-
-			require.Equal(t, string(serData), string(serReadServer))
+			require.Empty(t, d)
 		})
 	}
 }

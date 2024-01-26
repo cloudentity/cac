@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/diff"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
@@ -16,52 +16,64 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app    *cac.Application
-				data1  models.TreeServer
-				data2  *models.TreeServer
-				result any
-				bts    []byte
+				result string
+				source api.Source
+				target api.Source
 				err    error
 			)
 
-			if app, err = cac.InitApp(diffConfig.ConfigPath); err != nil {
-				return err
-			}
-
 			slog.
 				With("workspace", diffConfig.Workspace).
-				With("config", diffConfig.ConfigPath).
+				With("config", rootConfig.ConfigPath).
+				With("profile", rootConfig.Profile).
+				With("source", diffConfig.Source).
+				With("target", diffConfig.Target).
 				Info("Comparing workspace configuration")
 
-			if data1, err = app.Storage.Read(diffConfig.Workspace); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
 				return err
 			}
 
-			if data2, err = app.Client.PullWorkspaceConfiguration(cmd.Context(), diffConfig.Workspace, diffConfig.WithSecrets); err != nil {
+			if source, err = app.PickSource(diffConfig.Source); err != nil {
 				return err
 			}
 
-			if result, err = diff.Tree(data1, *data2); err != nil {
+			if target, err = app.PickSource(diffConfig.Target); err != nil {
 				return err
 			}
 
-			// TODO it should be defined on the result
-			bts = result.([]byte)
-			_, err = os.Stdout.Write(bts)
+			slog.Info("Comparing configurations", "source", source, "target", target)
+
+			if result, err = diff.Diff(cmd.Context(), source, target, diffConfig.Workspace,
+				diff.Colorize(diffConfig.Colors),
+				diff.OnlyPresent(diffConfig.OnlyPresent),
+			); err != nil {
+				return err
+			}
+
+			_, err = os.Stdout.Write([]byte(result))
 
 			return nil
 		},
 	}
 	diffConfig struct {
-		ConfigPath  string
 		Workspace   string
-		TargetPath  string
+		Source      string
+		Target      string
 		WithSecrets bool
+		Colors      bool
+		OnlyPresent bool
 	}
 )
 
 func init() {
-	diffCmd.PersistentFlags().StringVar(&diffConfig.ConfigPath, "config", "", "Path to configuration file")
-	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to load")
-	diffCmd.PersistentFlags().BoolVar(&diffConfig.WithSecrets, "with-secrets", false, "Pull secrets")
-	diffCmd.PersistentFlags().StringVar(&diffConfig.TargetPath, "target", "remote", "Compare ")
+	diffCmd.PersistentFlags().StringVar(&diffConfig.Source, "source", "", "Source profile name")
+	diffCmd.PersistentFlags().StringVar(&diffConfig.Target, "target", "", "Target profile name")
+	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to compare")
+	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
+	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
+
+	diffCmd.MarkPersistentFlagRequired("source")
+	diffCmd.MarkPersistentFlagRequired("target")
+	diffCmd.MarkPersistentFlagRequired("workspace")
 }
