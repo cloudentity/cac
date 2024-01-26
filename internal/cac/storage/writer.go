@@ -18,7 +18,7 @@ type FileNameProvider[T any] func(id string, it T) string
 func writeFiles[T any](data map[string]T, parent string, fileName FileNameProvider[T]) error {
 	var (
 		writer Writer[*WithID[T]]
-		names  = utils.NewSet[string]()
+		names  = map[string]int{}
 		err    error
 	)
 
@@ -36,14 +36,16 @@ func writeFiles[T any](data map[string]T, parent string, fileName FileNameProvid
 		}
 
 		name := fileName(id, it)
-		conflicts := 0
+		count, ok := names[name]
 
-		if names.Has(name) {
-			conflicts++
-			name += fmt.Sprintf("-%d", conflicts+1)
+		if ok {
+			count = count + 1
+			name += fmt.Sprintf("-%d", count)
+		} else {
+			count = 1
 		}
 
-		names.Add(name)
+		names[name] = count
 
 		if err = writer(name, NewWithID(id, it)); err != nil {
 			return err
