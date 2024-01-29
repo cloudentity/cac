@@ -4,6 +4,7 @@ import (
 	"github.com/cloudentity/cac/internal/cac"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/diff"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 	"os"
@@ -51,7 +52,9 @@ var (
 				return err
 			}
 
-			_, err = os.Stdout.Write([]byte(result))
+			if _, err = os.Stdout.Write([]byte(result)); err != nil {
+				return errors.Wrap(err, "failed to write diff result to stdout")
+			}
 
 			return nil
 		},
@@ -73,7 +76,5 @@ func init() {
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
 
-	diffCmd.MarkPersistentFlagRequired("source")
-	diffCmd.MarkPersistentFlagRequired("target")
-	diffCmd.MarkPersistentFlagRequired("workspace")
+	mustMarkRequired(diffCmd, "source", "target", "workspace")
 }

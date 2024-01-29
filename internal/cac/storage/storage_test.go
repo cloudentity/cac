@@ -548,9 +548,11 @@ name: Some Script
 
 	for _, tc := range tcs {
 		t.Run(tc.desc, func(t *testing.T) {
-			logging.InitLogging(&logging.Configuration{
+			err := logging.InitLogging(&logging.Configuration{
 				Level: "debug",
 			})
+
+			require.NoError(t, err)
 
 			st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
 				DirPath: []string{t.TempDir(), t.TempDir()},

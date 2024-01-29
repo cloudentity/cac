@@ -30,7 +30,7 @@ func InitLogging(config *Configuration) (err error) {
 		opts     = &slog.HandlerOptions{
 			Level: levelRef,
 		}
-		logger = slog.Default()
+		logger *slog.Logger
 	)
 
 	if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil {

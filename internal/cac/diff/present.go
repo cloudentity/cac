@@ -11,7 +11,7 @@ func OnlyPresentKeys(source any, targetMap map[string]any) {
 		maps.Clear(targetMap)
 	}
 
-	for k, _ := range targetMap {
+	for k := range targetMap {
 		if _, ok := sourceMap[k]; !ok {
 			delete(targetMap, k)
 		}

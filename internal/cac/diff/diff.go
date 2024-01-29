@@ -76,7 +76,7 @@ func Tree(source *models.TreeServer, target *models.TreeServer, opts ...Option) 
 	}
 
 	if options.PresentAtSource {
-		for k, _ := range outT {
+		for k := range outT {
 			if tm, ok := outT[k].(map[string]any); ok {
 				OnlyPresentKeys(outS[k], tm)
 			}
