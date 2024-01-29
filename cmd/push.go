@@ -4,8 +4,8 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac"
 	"github.com/cloudentity/cac/internal/cac/storage"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/go-openapi/strfmt"
-	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
@@ -19,15 +19,15 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data models.TreeServer
+				data *models.TreeServer
 				err  error
 			)
 
-			if app, err = cac.InitApp(pushConfig.ConfigPath); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
 				return err
 			}
 
-			if data, err = app.Storage.Read(pushConfig.Workspace); err != nil {
+			if data, err = app.Storage.Read(cmd.Context(), pushConfig.Workspace); err != nil {
 				return err
 			}
 
@@ -40,7 +40,7 @@ var (
 				slog.Info("dry run enabled, storing files to disk instead of pushing to server")
 
 				if pushConfig.Out == "-" {
-					if bts, err = yaml.Marshal(data); err != nil {
+					if bts, err = utils.ToYaml(data); err != nil {
 						return err
 					}
 
@@ -65,11 +65,11 @@ var (
 						}
 
 						if info.IsDir() {
-							dryStorage := storage.InitStorage(storage.Configuration{
+							dryStorage := storage.InitStorage(&storage.Configuration{
 								DirPath: pushConfig.Out,
 							})
 
-							if err = dryStorage.Store(pushConfig.Workspace, &data); err != nil {
+							if err = dryStorage.Write(cmd.Context(), pushConfig.Workspace, data); err != nil {
 								return err
 							}
 
@@ -77,7 +77,7 @@ var (
 						}
 					}
 
-					if bts, err = yaml.Marshal(data); err != nil {
+					if bts, err = utils.ToYaml(data); err != nil {
 						return err
 					}
 
@@ -88,7 +88,7 @@ var (
 				}
 			}
 
-			if err = app.Client.PushWorkspaceConfiguration(cmd.Context(), pushConfig.Workspace, &data); err != nil {
+			if err = app.Client.Write(cmd.Context(), pushConfig.Workspace, data); err != nil {
 				return errors.Wrap(err, "failed to push workspace configuration")
 			}
 
@@ -98,15 +98,13 @@ var (
 		},
 	}
 	pushConfig struct {
-		ConfigPath string
-		Workspace  string
-		DryRun     bool
-		Out        string
+		Workspace string
+		DryRun    bool
+		Out       string
 	}
 )
 
 func init() {
-	pushCmd.PersistentFlags().StringVar(&pushConfig.ConfigPath, "config", "", "Path to configuration file")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Workspace, "workspace", "", "Workspace to load")
 	pushCmd.PersistentFlags().BoolVar(&pushConfig.DryRun, "dry-run", false, "Write files to disk instead of pushing to server")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file, directory or '-' for stdout")

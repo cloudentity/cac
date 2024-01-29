@@ -13,7 +13,7 @@ func TestClient(t *testing.T) {
 	t.Run("Client init success with valid credentials", func(t *testing.T) {
 		issuer, _ := url.Parse("https://postmance.eu.authz.cloudentity.io/postmance/system")
 
-		_, err := client.InitClient(client.Configuration{
+		_, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
@@ -27,7 +27,7 @@ func TestClient(t *testing.T) {
 	t.Run("Client init failure when not pointing at valid issuer url", func(t *testing.T) {
 		issuer, _ := url.Parse("https://example.com/tid1/aid1")
 
-		_, err := client.InitClient(client.Configuration{
+		_, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
@@ -42,7 +42,7 @@ func TestClient(t *testing.T) {
 	t.Run("client fails on invalid credentials", func(t *testing.T) {
 		issuer, _ := url.Parse("https://postmance.eu.authz.cloudentity.io/postmance/system")
 
-		c, err := client.InitClient(client.Configuration{
+		c, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
@@ -52,7 +52,7 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		_, err = c.PullWorkspaceConfiguration(context.Background(), "admin", false)
+		_, err = c.Read(context.Background(), "admin", client.WithSecrets(false))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unknown client, no client authentication included, or unsupported authentication method")
 	})

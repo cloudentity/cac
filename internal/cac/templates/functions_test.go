@@ -14,7 +14,7 @@ func TestFunctions(t *testing.T) {
 	err := os.Setenv("FOO", "bar")
 	require.NoError(t, err)
 
-	err = logging.InitLogging(logging.Configuration{
+	err = logging.InitLogging(&logging.Configuration{
 		Level: "debug",
 	})
 	require.NoError(t, err)

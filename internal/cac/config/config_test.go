@@ -9,12 +9,16 @@ import (
 
 func TestReadingConfiguration(t *testing.T) {
 	t.Run("Reads configuration from file", func(t *testing.T) {
-		conf, err := config.InitConfig("./../../../examples/e2e/config.yaml")
+		rootConf, err := config.InitConfig("./../../../examples/e2e/config.yaml")
 		require.NoError(t, err)
 
 		expectedIssuer, _ := url.Parse("https://postmance.eu.authz.cloudentity.io/postmance/system")
 
-		require.NotNil(t, conf)
+		require.NotNil(t, rootConf)
+
+		conf, err := rootConf.ForProfile("")
+		require.NoError(t, err)
+
 		require.NotNil(t, conf.Client)
 		require.Equal(t, expectedIssuer, conf.Client.IssuerURL)
 		require.Contains(t, conf.Client.Scopes, "manage_configuration")
@@ -24,6 +28,10 @@ func TestReadingConfiguration(t *testing.T) {
 		require.NotEmpty(t, conf.Client.Scopes)
 		require.NotEmpty(t, conf.Logging.Level)
 		require.NotEmpty(t, conf.Logging.Format)
+
+		profile, err := rootConf.ForProfile("stage")
+		require.NoError(t, err)
+		require.NotEmpty(t, "aaaaaaaaaaaaa", profile.Client.ClientID)
 	})
 
 	t.Run("fail on invalid path", func(t *testing.T) {
@@ -37,7 +45,13 @@ func TestReadingConfiguration(t *testing.T) {
 		t.Setenv("CLIENT_CLIENT_ID", "test-cid1")
 		t.Setenv("CLIENT_CLIENT_SECRET", "test-secret")
 
-		conf, err := config.InitConfig("")
+		// FIXME reading profiles from env variables is not yet supported
+		// t.Setenv("PROFILES_STAGE_CLIENT_CLIENT_SECRET", "test-secret")
+
+		rootConf, err := config.InitConfig("")
+		require.NoError(t, err)
+
+		conf, err := rootConf.ForProfile("")
 		require.NoError(t, err)
 
 		require.NotNil(t, conf)

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/cloudentity/cac/internal/cac/templates"
-	"github.com/goccy/go-yaml"
+	ccyaml "github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 	"os"
@@ -40,20 +40,23 @@ func readFile[T any](path string, out *T, opts ...ReadFileOpt[T]) error {
 		return errors.Wrapf(err, "failed to render template %s", path)
 	}
 
+	slog.Debug("read template", "path", path, "data", bts)
+
 	if out == nil && o.Constructor != nil {
 		out = o.Constructor()
 	}
 
-	if err = yaml.Unmarshal(bts, out); err != nil {
+	// using goccy/go-yaml instead of sigs.k8s.io/yaml because it is better at handling multiline strings
+	if err = ccyaml.Unmarshal(bts, out); err != nil {
 		return errors.Wrapf(err, "failed to unmarshal template %s", path)
 	}
 
-	slog.Debug("read file", "path", path, "data", bts, "out", out)
+	slog.Debug("read yaml", "path", path, "out", out)
 
 	return nil
 }
 
-func readFiles[M ~map[string]T, T any](path string, out *M) error {
+func readFiles[M ~map[string]T, T any](path string, out *M, opts ...ReadFileOpt[T]) error {
 	var (
 		dir []os.DirEntry
 		err error
@@ -71,9 +74,10 @@ func readFiles[M ~map[string]T, T any](path string, out *M) error {
 		var (
 			name = file.Name()
 			it   = WithID[T]{}
+			ext  = filepath.Ext(name)
 		)
 
-		if filepath.Ext(name) != ".yaml" {
+		if ext != ".yaml" && ext != ".yml" {
 			slog.Debug("skipping not yaml file", "name", name)
 			continue
 		}
