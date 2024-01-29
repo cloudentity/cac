@@ -10,6 +10,31 @@ This repository contains a CLI tool for managing Cloudentity configuration.
 go install github.com/cloudentity/cac
 ```
 
+## Configuration
+
+```yaml
+logging: # logger config
+  level: debug # one of: debug, info, warn, error
+  format: text # one of: text, json
+client:
+  issuer_url: https://postmance.eu.authz.cloudentity.io/postmance/system # authz issuer url
+  client_id: fb346c287c4d4e378cbae39aa0c3fe52 # system workspace client id
+  client_secret: invalid_secret
+  scopes:
+    - manage_configuration # scope required to read / write configuration 
+storage:
+  dir_path: "/tmp/e2e-data" # path to local configuration
+
+profiles: # a map of profiles available for use
+  stage: # each profile support same configuration as root (aka default profile)
+    client:
+      issuer_url: https://janus.eu.authz.cloudentity.io/janus/system
+      client_id: fb346c287c4d4e378cbae39aa0cxxxxx
+      client_secret: invalid_secret
+    storage:
+      dir_path: "/tmp/other"
+```
+
 ## Commands
 
 ### Help
@@ -17,7 +42,26 @@ go install github.com/cloudentity/cac
 Prints help message with available commands and their parameters.
 
 ```bash
-cac --help
+cac --help 
+
+Cloudentity configuration manager
+
+Usage:
+  cac [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  diff        Compare configuration
+  help        Help about any command
+  pull        Pull existing configuration
+  push        push local configuration
+
+Flags:
+      --config string    Path to source configuration file
+  -h, --help             help for cac
+      --profile string   Configuration profile
+
+Use "cac [command] --help" for more information about a command.
 ```
 
 ### Pull
@@ -25,7 +69,26 @@ cac --help
 Pull configuration from Cloudentity and save it to a directory structure.
 
 ```bash
-cac --config examples/e2e/config.yaml pull --workspace cdr_australia-demo-c67evw7mj4
+cac pull --help
+Pull existing configuration
+
+Usage:
+  cac pull [flags]
+
+Flags:
+  -h, --help               help for pull
+      --with-secrets       Pull secrets
+      --workspace string   Workspace to load
+
+Global Flags:
+      --config string    Path to source configuration file
+      --profile string   Configuration profile
+```
+
+Sample execution
+
+```
+cac pull --config examples/e2e/config.yaml --workspace cdr_australia-demo-c67evw7mj4
 ```
 
 #### Sample output
@@ -82,6 +145,25 @@ cac --config examples/e2e/config.yaml pull --workspace cdr_australia-demo-c67evw
 
 Merge configuration from a directory structure and push it into Cloudentity.
 
+```bash
+cac push --help
+
+push local configuration
+
+Usage:
+  cac push [flags]
+
+Flags:
+      --dry-run            Write files to disk instead of pushing to server
+  -h, --help               help for push
+      --out string         Dry execution output. It can be a file, directory or '-' for stdout (default "-")
+      --workspace string   Workspace to load
+
+Global Flags:
+      --config string    Path to source configuration file
+      --profile string   Configuration profile
+```
+
 #### Push configuration from multiple directories
 
 To push configration from multiple directories, either pass an array to the `storage.dir_path` or use `STORAGE_DIR_PATH` with multiple paths split by a comma.
@@ -92,6 +174,46 @@ Configurations are merged in the reverse order, so the first path has the highes
 cac --config examples/e2e/config.yaml push --workspace cdr_australia-demo-c67evw7mj4
 ```
 
+### Diff
+
+Compare configuration between different profiles, or your local configuration with remote.
+
+```bash
+cac diff --help
+
+Compare configuration
+
+Usage:
+  cac diff [flags]
+
+Flags:
+      --colors             Colorize output (default true)
+  -h, --help               help for diff
+      --only-present       Compare only resources present at source
+      --source string      Source profile name
+      --target string      Target profile name
+      --workspace string   Workspace to compare
+
+Global Flags:
+      --config string    Path to source configuration file
+      --profile string   Configuration profile
+```
+
+Sample execution
+
+```
+cac diff --config examples/e2e/config-postmance.yaml --source local --target remote --workspace "cdr_australia-demo-c67evw7mj4"
+
+2024/01/29 12:53:37 INFO Comparing workspace configuration workspace=cdr_australia-demo-c67evw7mj4 config=examples/e2e/config-postmance.yaml profile=default source=local target=remote
+time=2024-01-29T12:53:38.492+01:00 level=INFO msg="Initiated application"
+time=2024-01-29T12:53:38.643+01:00 level=INFO msg="Comparing configurations" source="storage: [/tmp/e2e-data]" target="client: https://postmance.eu.authz.cloudentity.io/postmance/system"
+map[string]any{
+... // 6 identical entries
+"backchannel_user_code_parameter_supported": bool(false),
+"cdr":                                       map[string]any{"adr_validation_enabled": bool(false), "dont_cache_trust_anchor_data": bool(false), "industry": string("banking"), "register_api_version": string("1.20.0"), ...},
+- 	"ciba_authentication_service":               map[string]any{"type": string("mock")},
+```
+
 ## Templates
 
 Templates are used to generate configuration files. They are using [Go template language](https://golang.org/pkg/text/template/).
@@ -100,7 +222,8 @@ Templates are used to generate configuration files. They are using [Go template 
 
 We use [Sprig](http://masterminds.github.io/sprig/) library to extend Go template language with additional functions and also provide several custom functions.
 
-|  Function | Description                                               |
-|----------:|:----------------------------------------------------------|
-|   include | Includes a template file                                  |
-|       env | Reads an environment variable, and fails if it is not set |
+| Function | Description                                               |
+|---------:|:----------------------------------------------------------|
+|  include | Includes a template file                                  |
+|      env | Reads an environment variable, and fails if it is not set |
+|  nindent | prefixes text with \|\-\n and pads it with n spaces       |
