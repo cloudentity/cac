@@ -25,7 +25,7 @@ client:
 storage:
   dir_path: "/tmp/e2e-data" # path to local configuration
 
-profiles: # a map of profiles available for use
+profiles: # an optional map of profiles available for use, especially helpful when you want to use compare multiple configurations
   stage: # each profile support same configuration as root (aka default profile)
     client:
       issuer_url: https://janus.eu.authz.cloudentity.io/janus/system
