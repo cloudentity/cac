@@ -33,8 +33,8 @@ type Options struct {
 type SourceOpt func(*Options)
 
 type Source interface {
-	Read(ctx context.Context, workspace string, opts ...SourceOpt) (*models.TreeServer, error)
-	Write(ctx context.Context, workspace string, data *models.TreeServer) error
+	Read(ctx context.Context, workspace string, opts ...SourceOpt) (models.Rfc7396PatchOperation, error)
+	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error
 
 	String() string
 }

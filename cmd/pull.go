@@ -15,7 +15,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data *models.TreeServer
+				data models.Rfc7396PatchOperation
 				err  error
 			)
 

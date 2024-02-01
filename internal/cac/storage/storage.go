@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	adminmodels "github.com/cloudentity/acp-client-go/clients/admin/models"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	smodels "github.com/cloudentity/acp-client-go/clients/system/models"
 	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/utils"
+	"github.com/pkg/errors"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slog"
 	"path/filepath"
@@ -27,8 +29,8 @@ func InitStorage(config *Configuration) *SingleStorage {
 }
 
 type Storage interface {
-	Write(ctx context.Context, workspace string, data *models.TreeServer) error
-	Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error)
+	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error
+	Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error)
 }
 
 type SingleStorage struct {
@@ -38,11 +40,16 @@ type SingleStorage struct {
 var _ Storage = &SingleStorage{}
 var _ api.Source = &SingleStorage{}
 
-func (s *SingleStorage) Write(ctx context.Context, workspace string, data *models.TreeServer) error {
+func (s *SingleStorage) Write(ctx context.Context, workspace string, input models.Rfc7396PatchOperation) error {
 	var (
 		workspacePath = s.workspacePath(workspace)
+		data          *models.TreeServer
 		err           error
 	)
+
+	if data, err = utils.FromPatchToTreeServer(input); err != nil {
+		return errors.Wrap(err, "failed to convert patch to tree server")
+	}
 
 	if err = s.storeServer(workspace, data); err != nil {
 		return err
@@ -101,7 +108,7 @@ func (s *SingleStorage) Write(ctx context.Context, workspace string, data *model
 	if len(data.ServersBindings) > 0 {
 		if err = writeFile(map[string]any{
 			"bindings": maps.Keys(data.ServersBindings),
-		}, filepath.Join(workspacePath, "server_bindings")); err != nil {
+		}, filepath.Join(workspacePath, "servers_bindings")); err != nil {
 			return err
 		}
 	}
@@ -124,6 +131,10 @@ func (s *SingleStorage) Write(ctx context.Context, workspace string, data *model
 		return err
 	}
 
+	if err = writeFile(data.CibaAuthenticationService, filepath.Join(workspacePath, "ciba")); err != nil {
+		return err
+	}
+
 	if err = storeScripts(data.Scripts, filepath.Join(workspacePath, "scripts")); err != nil {
 		return err
 	}
@@ -137,113 +148,125 @@ func (s *SingleStorage) Write(ctx context.Context, workspace string, data *model
 	return nil
 }
 
-func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error) {
+func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
-		server = &models.TreeServer{
-			Clients:              models.TreeClients{},
-			Idps:                 models.TreeIDPs{},
-			CustomApps:           models.TreeCustomApps{},
-			Gateways:             models.TreeGateways{},
-			Pools:                models.TreePools{},
-			Webhooks:             models.TreeWebhooks{},
-			Scripts:              models.TreeScripts{},
-			Policies:             models.TreePolicies{},
-			Services:             models.TreeServices{},
-			ScopesWithoutService: models.TreeScopes{},
-			ServersBindings:      models.TreeServersBindings{},
-		}
-		path = s.workspacePath(workspace)
-		err  error
+		server = models.Rfc7396PatchOperation{}
+		path   = s.workspacePath(workspace)
+		err    error
 	)
 
-	if err = readFile(filepath.Join(path, "server"), server); err != nil {
+	if server, err = readFile(filepath.Join(path, "server")); err != nil {
 		return server, err
 	}
 
-	if err = readFiles(filepath.Join(path, "clients"), &server.Clients); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "clients", filepath.Join(path, "clients")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "idps"), &server.Idps); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "idps", filepath.Join(path, "idps")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "claims"), &server.Claims); err != nil {
-		return server, err
+	if err = readFileToMap(server, "claims", filepath.Join(path, "claims")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "custom_apps"), &server.CustomApps); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "custom_apps", filepath.Join(path, "custom_apps")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "gateways"), &server.Gateways); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "gateways", filepath.Join(path, "gateways")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "policy_execution_points"), &server.PolicyExecutionPoints); err != nil {
-		return server, err
+	if err = readFileToMap(server, "policy_execution_points", filepath.Join(path, "policy_execution_points")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "pools"), &server.Pools); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "pools", filepath.Join(path, "pools")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "scopes"), &server.ScopesWithoutService); err != nil {
-		return server, err
+	if err = readFileToMap(server, "scopes_without_service", filepath.Join(path, "scopes")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "script_execution_points"), &server.ScriptExecutionPoints); err != nil {
-		return server, err
+	if err = readFileToMap(server, "script_execution_points", filepath.Join(path, "script_execution_points")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "consent"), server.ServerConsent, func(opts *ReadFileOpts[models.TreeServerConsent]) {
-		opts.Constructor = func() *models.TreeServerConsent {
-			server.ServerConsent = &models.TreeServerConsent{}
-			return server.ServerConsent
-		}
-	}); err != nil {
-		return server, err
+	if err = readFileToMap(server, "server_consent", filepath.Join(path, "consent")); err != nil {
+		return nil, err
+	}
+
+	if err = readFileToMap(server, "ciba_authentication_service", filepath.Join(path, "ciba")); err != nil {
+		return nil, err
 	}
 
 	sb := map[string]any{}
-	if err = readFile(filepath.Join(path, "server_bindings"), &sb); err != nil {
+	if sb, err = readFile(filepath.Join(path, "servers_bindings")); err != nil {
 		return server, err
 	}
 
 	if bindings, ok := sb["bindings"].([]any); ok && len(bindings) != 0 {
-		server.ServersBindings = models.TreeServersBindings{}
+		binds := map[string]any{}
 
 		for _, binding := range bindings {
-			server.ServersBindings[binding.(string)] = true
+			binds[binding.(string)] = true
 		}
+
+		server["servers_bindings"] = binds
 	}
 
-	if err = readFiles(filepath.Join(path, "services"), &server.Services); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "services", filepath.Join(path, "services")); err != nil {
+		return nil, err
 	}
 
-	if err = readFile(filepath.Join(path, "theme_binding"), server.ThemeBinding, func(opts *ReadFileOpts[models.TreeThemeBinding]) {
-		opts.Constructor = func() *models.TreeThemeBinding {
-			server.ThemeBinding = &models.TreeThemeBinding{}
-			return server.ThemeBinding
-		}
-	}); err != nil {
-		return server, err
+	if err = readFileToMap(server, "theme_binding", filepath.Join(path, "theme_binding")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "webhooks"), &server.Webhooks); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "webhooks", filepath.Join(path, "webhooks")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "scripts"), &server.Scripts); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "scripts", filepath.Join(path, "scripts")); err != nil {
+		return nil, err
 	}
 
-	if err = readFiles(filepath.Join(path, "policies"), &server.Policies); err != nil {
-		return server, err
+	if err = readFilesToMap(server, "policies", filepath.Join(path, "policies")); err != nil {
+		return nil, err
 	}
 
 	return server, nil
+}
+
+func readFileToMap(server models.Rfc7396PatchOperation, key string, path string) error {
+	var err error
+
+	if server[key], err = readFile(path); err != nil {
+		return err
+	}
+
+	if v, ok := server[key].(map[string]any); ok && len(v) == 0 {
+		delete(server, key)
+	}
+
+	return nil
+}
+
+func readFilesToMap(server models.Rfc7396PatchOperation, key string, path string) error {
+	var err error
+
+	if server[key], err = readFiles(path); err != nil {
+		return err
+	}
+
+	if v, ok := server[key].(map[string]any); ok && len(v) == 0 {
+		delete(server, key)
+	}
+
+	return nil
 }
 
 func (s *SingleStorage) String() string {
@@ -257,12 +280,12 @@ func (s *SingleStorage) workspacePath(workspace string) string {
 func (s *SingleStorage) storeServer(workspace string, data *models.TreeServer) error {
 	var (
 		path   = filepath.Join(s.workspacePath(workspace), "server")
-		server adminmodels.Server
+		server smodels.ServerDump
 		bts    []byte
 		err    error
 	)
 
-	// serialize the server data into adminmodel to remove the dependencies which are stored in separate files
+	// serialize the server data into system/models to remove the dependencies which are stored in separate files
 	if bts, err = json.Marshal(data); err != nil {
 		return err
 	}
@@ -278,4 +301,14 @@ func (s *SingleStorage) storeServer(workspace string, data *models.TreeServer) e
 	}
 
 	return nil
+}
+
+func initMap(data map[string]any, key string) map[string]any {
+	var out = map[string]any{}
+
+	if data[key] == nil {
+		data[key] = out
+	}
+
+	return out
 }

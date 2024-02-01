@@ -9,9 +9,8 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/go-openapi/runtime"
-	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 	"net/http"
 )
@@ -54,10 +53,11 @@ func InitClient(config *Configuration) (c *Client, err error) {
 	}, nil
 }
 
-func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (*models.TreeServer, error) {
+func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
-		ok      *workspace_configuration.ExportWorkspaceConfigOK
 		options = &api.Options{}
+		ok      *workspace_configuration.ExportWorkspaceConfigOK
+		data    models.Rfc7396PatchOperation
 		err     error
 	)
 
@@ -74,28 +74,18 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 		return nil, err
 	}
 
-	return ok.Payload, nil
+	if data, err = utils.FromTreeServerToPatch(ok.Payload); err != nil {
+		return nil, errors.Wrap(err, "failed to convert tree server to patch")
+	}
+
+	return data, nil
 }
 
-func (c *Client) Write(ctx context.Context, workspace string, input *models.TreeServer) error {
+func (c *Client) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error {
 	var (
-		mode    = "update"
-		out     = models.Rfc7396PatchOperation{}
-		decoder *mapstructure.Decoder
-		err     error
+		mode = "update"
+		err  error
 	)
-
-	if decoder, err = utils.Decoder(&out); err != nil {
-		return err
-	}
-
-	if err = decoder.Decode(input); err != nil {
-		return err
-	}
-
-	if out, err = maputil.Compact(out); err != nil {
-		return err
-	}
 
 	if _, err = c.acp.Hub.WorkspaceConfiguration.
 		PatchWorkspaceConfigRfc7396(workspace_configuration.
@@ -103,7 +93,7 @@ func (c *Client) Write(ctx context.Context, workspace string, input *models.Tree
 			WithContext(ctx).
 			WithWid(workspace).
 			WithMode(&mode).
-			WithPatch(out), nil, func(operation *runtime.ClientOperation) {
+			WithPatch(data), nil, func(operation *runtime.ClientOperation) {
 			operation.PathPattern = "/workspaces/{wid}/promote/config-rfc7396"
 		}); err != nil {
 		return err

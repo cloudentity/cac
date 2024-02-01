@@ -9,14 +9,14 @@ import (
 	"path/filepath"
 )
 
-type ReadFileOpts[T any] struct {
-	Constructor func() *T
+type ReadFileOpts struct {
 }
-type ReadFileOpt[T any] func(opts *ReadFileOpts[T])
+type ReadFileOpt func(opts *ReadFileOpts)
 
-func readFile[T any](path string, out *T, opts ...ReadFileOpt[T]) error {
+func readFile(path string, opts ...ReadFileOpt) (map[string]any, error) {
 	var (
-		o   = ReadFileOpts[T]{}
+		o   = ReadFileOpts{}
+		out = map[string]any{}
 		bts []byte
 		err error
 	)
@@ -34,47 +34,46 @@ func readFile[T any](path string, out *T, opts ...ReadFileOpt[T]) error {
 	if bts, err = templates.New(path).Render(); err != nil {
 		if os.IsNotExist(err) {
 			slog.Debug("file not found", "path", path)
-			return nil
+			return out, nil
 		}
 
-		return errors.Wrapf(err, "failed to render template %s", path)
+		return out, errors.Wrapf(err, "failed to render template %s", path)
 	}
 
 	slog.Debug("read template", "path", path, "data", bts)
 
-	if out == nil && o.Constructor != nil {
-		out = o.Constructor()
-	}
-
 	// using goccy/go-yaml instead of sigs.k8s.io/yaml because it is better at handling multiline strings
-	if err = ccyaml.Unmarshal(bts, out); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal template %s", path)
+	if err = ccyaml.Unmarshal(bts, &out); err != nil {
+		return out, errors.Wrapf(err, "failed to unmarshal template %s", path)
 	}
 
 	slog.Debug("read yaml", "path", path, "out", out)
 
-	return nil
+	return out, nil
 }
 
-func readFiles[M ~map[string]T, T any](path string, out *M, opts ...ReadFileOpt[T]) error {
+func readFiles(path string, opts ...ReadFileOpt) (map[string]any, error) {
 	var (
+		out = map[string]any{}
 		dir []os.DirEntry
 		err error
 	)
 
 	if dir, err = os.ReadDir(path); err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return out, nil
 		}
 
-		return err
+		return out, err
 	}
 
 	for _, file := range dir {
 		var (
 			name = file.Name()
-			it   = WithID[T]{}
 			ext  = filepath.Ext(name)
+			it   map[string]any
+			id   string
+			ok   bool
 		)
 
 		if ext != ".yaml" && ext != ".yml" {
@@ -82,12 +81,18 @@ func readFiles[M ~map[string]T, T any](path string, out *M, opts ...ReadFileOpt[
 			continue
 		}
 
-		if err = readFile(filepath.Join(path, name), &it); err != nil {
-			return err
+		if it, err = readFile(filepath.Join(path, name)); err != nil {
+			return out, err
 		}
 
-		(*out)[it.ID] = it.Other
+		if id, ok = it["id"].(string); !ok {
+			return out, errors.Errorf("missing id in %s", name)
+		}
+
+		delete(it, "id")
+
+		out[id] = it
 	}
 
-	return nil
+	return out, nil
 }
