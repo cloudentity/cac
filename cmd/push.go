@@ -20,6 +20,7 @@ var (
 			var (
 				app  *cac.Application
 				data models.Rfc7396PatchOperation
+				serv *models.TreeServer
 				err  error
 			)
 
@@ -31,7 +32,11 @@ var (
 				return err
 			}
 
-			if err = data.Validate(strfmt.Default); err != nil {
+			if serv, err = utils.FromPatchToTreeServer(data); err != nil {
+				return err
+			}
+
+			if err = serv.Validate(strfmt.Default); err != nil {
 				return err
 			}
 

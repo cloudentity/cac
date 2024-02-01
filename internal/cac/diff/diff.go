@@ -55,6 +55,7 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		opt(options)
 	}
 
+	// cleanup fields that are available in system model but not available in hub model
 	delete(source, "id")
 	delete(source, "tenant_id")
 

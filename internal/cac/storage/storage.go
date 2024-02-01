@@ -150,8 +150,8 @@ func (s *SingleStorage) Write(ctx context.Context, workspace string, input model
 
 func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
-		server = models.Rfc7396PatchOperation{}
 		path   = s.workspacePath(workspace)
+		server models.Rfc7396PatchOperation
 		err    error
 	)
 
@@ -203,7 +203,7 @@ func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.
 		return nil, err
 	}
 
-	sb := map[string]any{}
+	var sb map[string]any
 	if sb, err = readFile(filepath.Join(path, "servers_bindings")); err != nil {
 		return server, err
 	}
@@ -301,14 +301,4 @@ func (s *SingleStorage) storeServer(workspace string, data *models.TreeServer) e
 	}
 
 	return nil
-}
-
-func initMap(data map[string]any, key string) map[string]any {
-	var out = map[string]any{}
-
-	if data[key] == nil {
-		data[key] = out
-	}
-
-	return out
 }
