@@ -19,12 +19,6 @@ type Client struct {
 	acp *acpclient.Client
 }
 
-func WithSecrets(secrets bool) api.SourceOpt {
-	return func(o *api.Options) {
-		o.Secrets = secrets
-	}
-}
-
 var _ api.Source = &Client{}
 
 func InitClient(config *Configuration) (c *Client, err error) {
@@ -81,10 +75,35 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 	return data, nil
 }
 
-func (c *Client) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error {
+func (c *Client) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
 	var (
-		mode = "update"
-		err  error
+		options = &api.Options{}
+		err     error
+	)
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	switch options.Method {
+	case "import":
+		if err = c.Import(ctx, workspace, options.Mode, data); err != nil {
+			return err
+		}
+	case "patch":
+		if err = c.Patch(ctx, workspace, options.Mode, data); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown method: %v", options.Method)
+	}
+
+	return nil
+}
+
+func (c *Client) Patch(ctx context.Context, workspace string, mode string, data models.Rfc7396PatchOperation) error {
+	var (
+		err error
 	)
 
 	if _, err = c.acp.Hub.WorkspaceConfiguration.
@@ -95,6 +114,31 @@ func (c *Client) Write(ctx context.Context, workspace string, data models.Rfc739
 			WithMode(&mode).
 			WithPatch(data), nil, func(operation *runtime.ClientOperation) {
 			operation.PathPattern = "/workspaces/{wid}/promote/config-rfc7396"
+		}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) Import(ctx context.Context, workspace string, mode string, data models.Rfc7396PatchOperation) error {
+	var (
+		err error
+		out *models.TreeServer
+	)
+
+	if out, err = utils.FromPatchToTreeServer(data); err != nil {
+		return err
+	}
+
+	if _, err = c.acp.Hub.WorkspaceConfiguration.
+		ImportWorkspaceConfig(workspace_configuration.
+			NewImportWorkspaceConfigParams().
+			WithContext(ctx).
+			WithWid(workspace).
+			WithMode(&mode).
+			WithConfig(out), nil, func(operation *runtime.ClientOperation) {
+			operation.PathPattern = "/workspaces/{wid}/promote/config"
 		}); err != nil {
 		return err
 	}

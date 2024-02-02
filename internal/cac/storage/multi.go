@@ -47,7 +47,7 @@ var _ Storage = &MultiStorage{}
 var _ api.Source = &MultiStorage{}
 
 // Write for simplicity stores data in first storage only, it is responsibility of the user to move entities to other storages
-func (m *MultiStorage) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error {
+func (m *MultiStorage) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
 	return m.Storages[0].Write(ctx, workspace, data)
 }
 

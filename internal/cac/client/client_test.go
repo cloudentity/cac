@@ -3,6 +3,7 @@ package client_test
 import (
 	"context"
 	acpclient "github.com/cloudentity/acp-client-go"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/stretchr/testify/require"
 	"net/url"
@@ -52,7 +53,7 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		_, err = c.Read(context.Background(), "admin", client.WithSecrets(false))
+		_, err = c.Read(context.Background(), "admin", api.WithSecrets(false))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unknown client, no client authentication included, or unsupported authentication method")
 	})

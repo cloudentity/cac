@@ -29,7 +29,7 @@ func InitStorage(config *Configuration) *SingleStorage {
 }
 
 type Storage interface {
-	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error
+	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error
 	Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error)
 }
 
@@ -40,7 +40,7 @@ type SingleStorage struct {
 var _ Storage = &SingleStorage{}
 var _ api.Source = &SingleStorage{}
 
-func (s *SingleStorage) Write(ctx context.Context, workspace string, input models.Rfc7396PatchOperation) error {
+func (s *SingleStorage) Write(ctx context.Context, workspace string, input models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
 	var (
 		workspacePath = s.workspacePath(workspace)
 		data          *models.TreeServer

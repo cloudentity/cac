@@ -28,13 +28,37 @@ func SourceFromString(s string) (SourceType, error) {
 
 type Options struct {
 	Secrets bool
+	Mode    string
+	Method  string
 }
 
 type SourceOpt func(*Options)
 
 type Source interface {
 	Read(ctx context.Context, workspace string, opts ...SourceOpt) (models.Rfc7396PatchOperation, error)
-	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation) error
+	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...SourceOpt) error
 
 	String() string
+}
+
+func WithSecrets(secrets bool) SourceOpt {
+	return func(o *Options) {
+		o.Secrets = secrets
+	}
+}
+
+func WithMode(mode string) SourceOpt {
+	return func(o *Options) {
+		if mode == "" {
+			mode = "update"
+		}
+
+		o.Mode = mode
+	}
+}
+
+func WithMethod(method string) SourceOpt {
+	return func(options *Options) {
+		options.Method = method
+	}
 }
