@@ -90,6 +90,8 @@ var (
 					if err = os.WriteFile(pushConfig.Out, bts, 0644); err != nil {
 						return err
 					}
+
+					return nil
 				}
 			}
 

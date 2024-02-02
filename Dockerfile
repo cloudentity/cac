@@ -13,5 +13,6 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=build /app/cac .
+COPY /scripts/action-entrypoint.sh /action-entrypoint.sh
 
 ENTRYPOINT ["/app/cac"]
