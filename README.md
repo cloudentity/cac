@@ -156,6 +156,8 @@ Usage:
 Flags:
       --dry-run            Write files to disk instead of pushing to server
   -h, --help               help for push
+      --method string      One of patch (merges remote with your config before applying), import (replaces remote with your config)
+      --mode string        One of ignore, fail, update (default "update")
       --out string         Dry execution output. It can be a file, directory or '-' for stdout (default "-")
       --workspace string   Workspace to load
 
