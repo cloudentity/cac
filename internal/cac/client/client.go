@@ -8,12 +8,10 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/client/workspace_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
-	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/go-openapi/runtime"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/exp/slog"
 	"net/http"
+	"strings"
 )
 
 type Client struct {
@@ -79,33 +77,28 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 
 func (c *Client) Write(ctx context.Context, workspace string, input *models.TreeServer) error {
 	var (
-		mode    = "update"
-		out     = models.Rfc7396PatchOperation{}
-		decoder *mapstructure.Decoder
-		err     error
+		mode = "update"
+		err  error
 	)
 
-	if decoder, err = utils.Decoder(&out); err != nil {
-		return err
-	}
-
-	if err = decoder.Decode(input); err != nil {
-		return err
-	}
-
-	if out, err = maputil.Compact(out); err != nil {
-		return err
-	}
+	slog.Info("writing workspace configuration", "in", input.Name)
 
 	if _, err = c.acp.Hub.WorkspaceConfiguration.
-		PatchWorkspaceConfigRfc7396(workspace_configuration.
-			NewPatchWorkspaceConfigRfc7396Params().
+		ImportWorkspaceConfig(workspace_configuration.
+			NewImportWorkspaceConfigParams().
 			WithContext(ctx).
 			WithWid(workspace).
 			WithMode(&mode).
-			WithPatch(out), nil, func(operation *runtime.ClientOperation) {
-			operation.PathPattern = "/workspaces/{wid}/promote/config-rfc7396"
+			WithConfig(input), nil, func(operation *runtime.ClientOperation) {
+			operation.PathPattern = "/workspaces/{wid}/promote/config"
 		}); err != nil {
+
+		// temporary workaround for acp not returning the advertised 204 no content status code
+		if strings.Contains(err.Error(), "status 200") {
+			slog.Info(err.Error())
+			return nil
+		}
+
 		return err
 	}
 
