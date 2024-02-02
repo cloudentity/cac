@@ -55,12 +55,8 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		opt(options)
 	}
 
-	// cleanup fields that are available in system model but not available in hub model
-	delete(source, "id")
-	delete(source, "tenant_id")
-
-	delete(target, "id")
-	delete(target, "tenant_id")
+	utils.CleanPatch(source)
+	utils.CleanPatch(target)
 
 	// marshaling structs to json and back to get proper field names in the comparison
 	if source, err = utils.NormalizePatch(source); err != nil {

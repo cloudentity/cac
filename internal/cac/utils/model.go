@@ -31,11 +31,13 @@ func FromPatchToTreeServer(patch models.Rfc7396PatchOperation) (*models.TreeServ
 		err error
 	)
 
+	CleanPatch(patch)
+
 	if bts, err = json.Marshal(patch, json.FormatNilMapAsNull(true)); err != nil {
 		return out, errors.Wrap(err, "failed to marshal patch to yaml")
 	}
 
-	if err = json.Unmarshal(bts, out); err != nil {
+	if err = json.Unmarshal(bts, out, json.RejectUnknownMembers(true)); err != nil {
 		return out, errors.Wrap(err, "failed to unmarshal yaml to tree server")
 	}
 
@@ -58,4 +60,10 @@ func NormalizePatch(patch models.Rfc7396PatchOperation) (models.Rfc7396PatchOper
 	}
 
 	return out, nil
+}
+
+// CleanPatch cleans fields that are available in system model but not available in hub model
+func CleanPatch(patch models.Rfc7396PatchOperation) {
+	delete(patch, "id")
+	delete(patch, "tenant_id")
 }
