@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
-	"github.com/go-json-experiment/json"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -29,8 +29,8 @@ func OnlyPresent(present bool) Option {
 
 func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
 	var (
-		server1 *models.TreeServer
-		server2 *models.TreeServer
+		server1 models.Rfc7396PatchOperation
+		server2 models.Rfc7396PatchOperation
 		err     error
 	)
 
@@ -45,12 +45,9 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 	return Tree(server1, server2, opts...)
 }
 
-func Tree(source *models.TreeServer, target *models.TreeServer, opts ...Option) (string, error) {
+func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperation, opts ...Option) (string, error) {
 	var (
 		options = &Options{}
-		outS    map[string]any
-		outT    map[string]any
-		bts     []byte
 		err     error
 	)
 
@@ -58,32 +55,27 @@ func Tree(source *models.TreeServer, target *models.TreeServer, opts ...Option) 
 		opt(options)
 	}
 
+	utils.CleanPatch(source)
+	utils.CleanPatch(target)
+
 	// marshaling structs to json and back to get proper field names in the comparison
-	if bts, err = json.Marshal(source); err != nil {
+	if source, err = utils.NormalizePatch(source); err != nil {
 		return "", err
 	}
 
-	if err = json.Unmarshal(bts, &outS); err != nil {
-		return "", err
-	}
-
-	if bts, err = json.Marshal(target); err != nil {
-		return "", err
-	}
-
-	if err = json.Unmarshal(bts, &outT); err != nil {
+	if target, err = utils.NormalizePatch(target); err != nil {
 		return "", err
 	}
 
 	if options.PresentAtSource {
-		for k := range outT {
-			if tm, ok := outT[k].(map[string]any); ok {
-				OnlyPresentKeys(outS[k], tm)
+		for k := range target {
+			if tm, ok := target[k].(map[string]any); ok {
+				OnlyPresentKeys(source[k], tm)
 			}
 		}
 	}
 
-	var out = cmp.Diff(outT, outS)
+	var out = cmp.Diff(target, source)
 
 	if options.Color {
 		return colorize(out), nil

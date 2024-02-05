@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac"
-	"github.com/cloudentity/cac/internal/cac/client"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 )
@@ -15,7 +15,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data *models.TreeServer
+				data models.Rfc7396PatchOperation
 				err  error
 			)
 
@@ -28,7 +28,7 @@ var (
 				With("config", rootConfig.ConfigPath).
 				Info("Pulling workspace configuration")
 
-			if data, err = app.Client.Read(cmd.Context(), pullConfig.Workspace, client.WithSecrets(pullConfig.WithSecrets)); err != nil {
+			if data, err = app.Client.Read(cmd.Context(), pullConfig.Workspace, api.WithSecrets(pullConfig.WithSecrets)); err != nil {
 				return err
 			}
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/storage"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/go-openapi/strfmt"
@@ -19,7 +20,8 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data *models.TreeServer
+				data models.Rfc7396PatchOperation
+				serv *models.TreeServer
 				err  error
 			)
 
@@ -31,7 +33,11 @@ var (
 				return err
 			}
 
-			if err = data.Validate(strfmt.Default); err != nil {
+			if serv, err = utils.FromPatchToTreeServer(data); err != nil {
+				return err
+			}
+
+			if err = serv.Validate(strfmt.Default); err != nil {
 				return err
 			}
 
@@ -90,7 +96,7 @@ var (
 				}
 			}
 
-			if err = app.Client.Write(cmd.Context(), pushConfig.Workspace, data); err != nil {
+			if err = app.Client.Write(cmd.Context(), pushConfig.Workspace, data, api.WithMode(pushConfig.Mode), api.WithMethod(pushConfig.Method)); err != nil {
 				return errors.Wrap(err, "failed to push workspace configuration")
 			}
 
@@ -103,6 +109,8 @@ var (
 		Workspace string
 		DryRun    bool
 		Out       string
+		Mode      string
+		Method    string
 	}
 )
 
@@ -110,4 +118,8 @@ func init() {
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Workspace, "workspace", "", "Workspace to load")
 	pushCmd.PersistentFlags().BoolVar(&pushConfig.DryRun, "dry-run", false, "Write files to disk instead of pushing to server")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file, directory or '-' for stdout")
+	pushCmd.PersistentFlags().StringVar(&pushConfig.Mode, "mode", "update", "One of ignore, fail, update")
+	pushCmd.PersistentFlags().StringVar(&pushConfig.Method, "method", "", "One of patch (merges remote with your config before applying), import (replaces remote with your config)")
+
+	mustMarkRequired(pushCmd, "workspace", "method")
 }

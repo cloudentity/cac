@@ -6,6 +6,7 @@ import (
 	"github.com/cloudentity/cac/internal/cac/diff"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
+	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/require"
 	"io/fs"
@@ -41,6 +42,7 @@ authorization_code_ttl: 0s
 backchannel_token_delivery_modes_supported: []
 backchannel_user_code_parameter_supported: false
 cookie_max_age: 0s
+do_not_create_default_claims: false
 enable_idp_discovery: false
 enable_legacy_clients_with_no_software_statement: false
 enable_quick_access: false
@@ -51,6 +53,7 @@ enforce_pkce_for_public_clients: false
 grant_types: []
 id: demo
 id_token_ttl: 0s
+initialize: false
 name: demo workspace
 pushed_authorization_request_ttl: 0s
 refresh_token_ttl: 0s
@@ -298,7 +301,7 @@ type: custom`, string(bts))
 				},
 			},
 			files: []string{
-				"workspaces/demo/server_bindings.yaml",
+				"workspaces/demo/servers_bindings.yaml",
 			},
 			assert: func(t *testing.T, path string, bts []byte) {
 				require.YAMLEq(t, `bindings:
@@ -560,7 +563,10 @@ name: Some Script
 
 			require.NoError(t, err)
 
-			err = st.Write(context.Background(), "demo", tc.data)
+			patchData, err := utils.FromTreeServerToPatch(tc.data)
+			require.NoError(t, err)
+
+			err = st.Write(context.Background(), "demo", patchData)
 			require.NoError(t, err)
 
 			var files []string
@@ -596,13 +602,13 @@ name: Some Script
 				}
 			}
 
-			var readServer *models.TreeServer
+			var readServer models.Rfc7396PatchOperation
 			readServer, err = st.Read(context.Background(), "demo")
 
 			require.NoError(t, err)
 
 			// verifying if the data read from fs is the same as the provided test data
-			d, err := diff.Tree(tc.data, readServer)
+			d, err := diff.Tree(patchData, readServer)
 			require.NoError(t, err)
 			require.Empty(t, d)
 		})
