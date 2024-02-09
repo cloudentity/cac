@@ -30,6 +30,7 @@ type Options struct {
 	Secrets bool
 	Mode    string
 	Method  string
+	Filters []string
 }
 
 type SourceOpt func(*Options)
@@ -54,6 +55,12 @@ func WithMode(mode string) SourceOpt {
 		}
 
 		o.Mode = mode
+	}
+}
+
+func WithFilters(filters []string) SourceOpt {
+	return func(o *Options) {
+		o.Filters = filters
 	}
 }
 

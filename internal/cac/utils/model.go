@@ -67,3 +67,89 @@ func CleanPatch(patch models.Rfc7396PatchOperation) {
 	delete(patch, "id")
 	delete(patch, "tenant_id")
 }
+
+func FilterPatch(patch models.Rfc7396PatchOperation, filters []string) (models.Rfc7396PatchOperation, error) {
+	var filterMap = map[string]bool{}
+
+	if len(filters) == 0 {
+		return patch, nil
+	}
+
+	for _, filter := range filters {
+		filterMap[filter] = true
+	}
+
+	if !filterMap["policies"] {
+		delete(patch, "policies")
+	}
+
+	if !filterMap["apis"] {
+		delete(patch, "apis")
+	}
+
+	if !filterMap["scopes"] {
+		delete(patch, "scopes_without_service")
+	}
+
+	if !filterMap["clients"] {
+		delete(patch, "clients")
+	}
+
+	if !filterMap["webhooks"] {
+		delete(patch, "webhooks")
+	}
+
+	if !filterMap["scripts"] {
+		delete(patch, "scripts")
+	}
+
+	if !filterMap["services"] {
+		delete(patch, "services")
+	}
+
+	if !filterMap["theme_binding"] {
+		delete(patch, "theme_binding")
+	}
+
+	if !filterMap["servers_bindings"] {
+		delete(patch, "servers_bindings")
+	}
+
+	if !filterMap["custom_apps"] {
+		delete(patch, "custom_apps")
+	}
+
+	if !filterMap["pools"] {
+		delete(patch, "pools")
+	}
+
+	if !filterMap["ciba"] {
+		delete(patch, "ciba_authentication_service")
+	}
+
+	if !filterMap["policy_execution_points"] {
+		delete(patch, "policy_execution_points")
+	}
+
+	if !filterMap["script_execution_points"] {
+		delete(patch, "script_execution_points")
+	}
+
+	if !filterMap["gateways"] {
+		delete(patch, "gateways")
+	}
+
+	if !filterMap["server_consent"] {
+		delete(patch, "server_consent")
+	}
+
+	if !filterMap["idps"] {
+		delete(patch, "idps")
+	}
+
+	if !filterMap["claims"] {
+		delete(patch, "claims")
+	}
+
+	return patch, nil
+}
