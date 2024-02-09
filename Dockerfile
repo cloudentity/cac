@@ -12,6 +12,8 @@ FROM alpine:latest
 
 WORKDIR /app
 
+RUN apk add bash
+
 COPY --from=build /app/cac .
 COPY /scripts/action-entrypoint.sh /action-entrypoint.sh
 
