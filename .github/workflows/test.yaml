@@ -18,4 +18,7 @@ jobs:
           id: cac
           with:
             args: --help
-        - run: echo -e "${{ steps.cac.outputs.result }}"
+        - run: cat "${{ steps.cac.outputs.result }}"
+          name: print action output
+        - run: cat out
+          name: print output file
