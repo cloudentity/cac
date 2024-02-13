@@ -29,6 +29,7 @@ var (
 				With("profile", rootConfig.Profile).
 				With("source", diffConfig.Source).
 				With("target", diffConfig.Target).
+				With("out", diffConfig.Out).
 				Info("Comparing workspace configuration")
 
 			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
@@ -52,6 +53,24 @@ var (
 				return err
 			}
 
+			if diffConfig.Out != "-" {
+				var (
+					file *os.File
+				)
+
+				if file, err = os.Create(diffConfig.Out); err != nil {
+					return errors.Wrap(err, "failed to create output file")
+				}
+				
+				defer file.Close()
+
+				if _, err = file.Write([]byte(result)); err != nil {
+					return errors.Wrap(err, "failed to write diff result to file")
+				}
+
+				return nil
+			}
+
 			if _, err = os.Stdout.Write([]byte(result)); err != nil {
 				return errors.Wrap(err, "failed to write diff result to stdout")
 			}
@@ -66,6 +85,7 @@ var (
 		WithSecrets bool
 		Colors      bool
 		OnlyPresent bool
+		Out         string
 	}
 )
 
@@ -75,6 +95,7 @@ func init() {
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to compare")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
+	diffCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file or '-' for stdout")
 
 	mustMarkRequired(diffCmd, "source", "target", "workspace")
 }

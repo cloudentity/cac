@@ -20,5 +20,3 @@ jobs:
             args: --help
         - run: cat "${{ steps.cac.outputs.result }}"
           name: print action output
-        - run: cat out
-          name: print output file
