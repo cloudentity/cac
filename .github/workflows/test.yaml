@@ -19,3 +19,4 @@ jobs:
           with:
             args: --help
         - run: echo -e "${{ steps.cac.outputs.result }}"
+          name: print action output
