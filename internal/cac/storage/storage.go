@@ -150,10 +150,15 @@ func (s *SingleStorage) Write(ctx context.Context, workspace string, input model
 
 func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
-		path   = s.workspacePath(workspace)
-		server models.Rfc7396PatchOperation
-		err    error
+		path    = s.workspacePath(workspace)
+		server  models.Rfc7396PatchOperation
+		options = &api.Options{}
+		err     error
 	)
+
+	for _, opt := range opts {
+		opt(options)
+	}
 
 	if server, err = readFile(filepath.Join(path, "server")); err != nil {
 		return server, err
@@ -235,6 +240,10 @@ func (s *SingleStorage) Read(ctx context.Context, workspace string, opts ...api.
 	}
 
 	if err = readFilesToMap(server, "policies", filepath.Join(path, "policies")); err != nil {
+		return nil, err
+	}
+
+	if server, err = utils.FilterPatch(server, options.Filters); err != nil {
 		return nil, err
 	}
 

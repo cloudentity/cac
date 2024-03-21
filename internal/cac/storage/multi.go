@@ -61,7 +61,7 @@ func (m *MultiStorage) Read(ctx context.Context, workspace string, opts ...api.S
 	for i := len(m.Storages) - 1; i >= 0; i-- {
 		var data2 models.Rfc7396PatchOperation
 
-		if data2, err = m.Storages[i].Read(ctx, workspace); err != nil {
+		if data2, err = m.Storages[i].Read(ctx, workspace, opts...); err != nil {
 			return data, errors.Wrap(err, "failed to read data from storage")
 		}
 
