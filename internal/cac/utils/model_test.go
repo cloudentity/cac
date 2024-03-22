@@ -16,14 +16,14 @@ func TestFilterPatch(t *testing.T) {
 		expected models.Rfc7396PatchOperation
 	}{
 		{
-			name: "filter patch",
+			name: "only clients",
 			server: models.Rfc7396PatchOperation{
-				"clients": map[string]any{
+				"clients": models.TreeClients{
 					"123": models.TreeClient{
 						ClientName: "client1",
 					},
 				},
-				"idps": map[string]any{
+				"idps": models.TreeIDPs{
 					"456": models.TreeIDP{
 						Name: "idp1",
 					},
@@ -31,10 +31,39 @@ func TestFilterPatch(t *testing.T) {
 			},
 			filters: []string{"clients"},
 			expected: models.Rfc7396PatchOperation{
-				"clients": map[string]any{
+				"clients": models.TreeClients{
 					"123": models.TreeClient{
 						ClientName: "client1",
 					},
+				},
+			},
+		},
+		{
+			name: "only scopes and ciba",
+			server: models.Rfc7396PatchOperation{
+				"clients": models.TreeClients{
+					"123": models.TreeClient{
+						ClientName: "client1",
+					},
+				},
+				"scopes_without_service": models.TreeScopes{
+					"456": models.TreeScope{
+						Description: "some scope",
+					},
+				},
+				"ciba_authentication_service": models.TreeCIBAAuthenticationService{
+					Type: "asd",
+				},
+			},
+			filters: []string{"scopes", "ciba"},
+			expected: models.Rfc7396PatchOperation{
+				"scopes_without_service": models.TreeScopes{
+					"456": models.TreeScope{
+						Description: "some scope",
+					},
+				},
+				"ciba_authentication_service": models.TreeCIBAAuthenticationService{
+					Type: "asd",
 				},
 			},
 		},
