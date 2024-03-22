@@ -651,7 +651,10 @@ system: false`, string(bts))
 			// verifying if the data read from fs is the same as the provided test data
 
 			patchData, err = utils.FilterPatch(patchData, tc.filters)
+			require.NoError(t, err)
+
 			readServer, err = utils.FilterPatch(readServer, tc.filters)
+			require.NoError(t, err)
 
 			d, err := diff.Tree(patchData, readServer)
 			require.NoError(t, err)
