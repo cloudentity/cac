@@ -76,6 +76,7 @@ Usage:
   cac pull [flags]
 
 Flags:
+      --filter strings     Pull only selected resources
   -h, --help               help for pull
       --with-secrets       Pull secrets
       --workspace string   Workspace to load
@@ -190,6 +191,7 @@ Usage:
 
 Flags:
       --colors             Colorize output (default true)
+      --filter strings     Compare only selected resources
   -h, --help               help for diff
       --only-present       Compare only resources present at source
       --source string      Source profile name
