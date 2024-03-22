@@ -72,6 +72,10 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 		return nil, errors.Wrap(err, "failed to convert tree server to patch")
 	}
 
+	if data, err = utils.FilterPatch(data, options.Filters); err != nil {
+		return nil, errors.Wrap(err, "failed to filter patch")
+	}
+
 	return data, nil
 }
 

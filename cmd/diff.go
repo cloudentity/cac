@@ -49,6 +49,7 @@ var (
 			if result, err = diff.Diff(cmd.Context(), source, target, diffConfig.Workspace,
 				diff.Colorize(diffConfig.Colors),
 				diff.OnlyPresent(diffConfig.OnlyPresent),
+				diff.Filters(diffConfig.Filters...),
 			); err != nil {
 				return err
 			}
@@ -75,6 +76,7 @@ var (
 		WithSecrets bool
 		Colors      bool
 		OnlyPresent bool
+		Filters     []string
 		Out         string
 	}
 )
@@ -85,6 +87,7 @@ func init() {
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to compare")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
+	diffCmd.PersistentFlags().StringSliceVar(&diffConfig.Filters, "filter", []string{}, "Compare only selected resources")
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Out, "out", "-", "Diff output. It can be a file or '-' for stdout")
 
 	mustMarkRequired(diffCmd, "source", "target", "workspace")

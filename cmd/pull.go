@@ -28,7 +28,10 @@ var (
 				With("config", rootConfig.ConfigPath).
 				Info("Pulling workspace configuration")
 
-			if data, err = app.Client.Read(cmd.Context(), pullConfig.Workspace, api.WithSecrets(pullConfig.WithSecrets)); err != nil {
+			if data, err = app.Client.Read(cmd.Context(), pullConfig.Workspace,
+				api.WithSecrets(pullConfig.WithSecrets),
+				api.WithFilters(pullConfig.Filters),
+			); err != nil {
 				return err
 			}
 
@@ -42,10 +45,12 @@ var (
 	pullConfig struct {
 		Workspace   string
 		WithSecrets bool
+		Filters     []string
 	}
 )
 
 func init() {
 	pullCmd.PersistentFlags().StringVar(&pullConfig.Workspace, "workspace", "", "Workspace to load")
 	pullCmd.PersistentFlags().BoolVar(&pullConfig.WithSecrets, "with-secrets", false, "Pull secrets")
+	pullCmd.PersistentFlags().StringSliceVar(&pullConfig.Filters, "filter", []string{}, "Pull only selected resources")
 }

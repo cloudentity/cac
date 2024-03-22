@@ -11,6 +11,7 @@ import (
 type Options struct {
 	Color           bool
 	PresentAtSource bool
+	Filters         []string
 }
 
 type Option func(*Options)
@@ -27,18 +28,34 @@ func OnlyPresent(present bool) Option {
 	}
 }
 
+func Filters(filters ...string) Option {
+	return func(options *Options) {
+		options.Filters = filters
+	}
+}
+
 func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
 	var (
-		server1 models.Rfc7396PatchOperation
-		server2 models.Rfc7396PatchOperation
-		err     error
+		server1  models.Rfc7396PatchOperation
+		server2  models.Rfc7396PatchOperation
+		options  = &Options{}
+		readOpts []api.SourceOpt
+		err      error
 	)
 
-	if server1, err = source.Read(ctx, workspace); err != nil {
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	if len(options.Filters) > 0 {
+		readOpts = append(readOpts, api.WithFilters(options.Filters))
+	}
+
+	if server1, err = source.Read(ctx, workspace, readOpts...); err != nil {
 		return "", err
 	}
 
-	if server2, err = target.Read(ctx, workspace); err != nil {
+	if server2, err = target.Read(ctx, workspace, readOpts...); err != nil {
 		return "", err
 	}
 

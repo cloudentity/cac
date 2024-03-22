@@ -67,3 +67,23 @@ func CleanPatch(patch models.Rfc7396PatchOperation) {
 	delete(patch, "id")
 	delete(patch, "tenant_id")
 }
+
+var staticFilterMappings = map[string]string{
+	"scopes": "scopes_without_service",
+	"ciba":   "ciba_authentication_service",
+}
+
+func FilterPatch(patch models.Rfc7396PatchOperation, filters []string) (models.Rfc7396PatchOperation, error) {
+	var newPatch = models.Rfc7396PatchOperation{}
+
+	for _, filter := range filters {
+
+		if mapped, ok := staticFilterMappings[filter]; ok {
+			filter = mapped
+		}
+
+		newPatch[filter] = patch[filter]
+	}
+
+	return newPatch, nil
+}

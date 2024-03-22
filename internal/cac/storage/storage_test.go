@@ -3,6 +3,7 @@ package storage_test
 import (
 	"context"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/diff"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
@@ -22,10 +23,11 @@ var dateTime, _ = strfmt.ParseDateTime("2024-01-23T23:19:30.004+01:00")
 
 func TestStorage(t *testing.T) {
 	tcs := []struct {
-		desc   string
-		data   *models.TreeServer
-		files  []string
-		assert func(t *testing.T, path string, bts []byte)
+		desc    string
+		data    *models.TreeServer
+		files   []string
+		filters []string
+		assert  func(t *testing.T, path string, bts []byte)
 	}{
 		{
 			desc: "server",
@@ -547,6 +549,45 @@ name: Some Script
 
 			},
 		},
+		{
+			desc: "idps, with filters",
+			data: &models.TreeServer{
+				Idps: models.TreeIDPs{
+					"some-idp": models.TreeIDP{
+						Name: "Some IDP",
+					},
+				},
+				Pools: models.TreePools{
+					"some-pool": models.TreePool{
+						Name: "Some Pool",
+					},
+				},
+			},
+			files: []string{
+				"workspaces/demo/idps/Some_IDP.yaml",
+				"workspaces/demo/pools/Some_Pool.yaml",
+			},
+			filters: []string{"idps"},
+			assert: func(t *testing.T, path string, bts []byte) {
+				switch path {
+				case "workspaces/demo/idps/Some_IDP.yaml":
+					require.YAMLEq(t, `disabled: false
+display_order: 0
+hidden: false
+id: some-idp
+name: Some IDP
+static_amr: []
+version: 0`, string(bts))
+				case "workspaces/demo/pools/Some_Pool.yaml":
+					require.YAMLEq(t, `deleted: false
+id: some-pool
+identifier_case_insensitive: false
+name: Some Pool
+public_registration_allowed: false
+system: false`, string(bts))
+				}
+			},
+		},
 	}
 
 	for _, tc := range tcs {
@@ -603,11 +644,18 @@ name: Some Script
 			}
 
 			var readServer models.Rfc7396PatchOperation
-			readServer, err = st.Read(context.Background(), "demo")
+			readServer, err = st.Read(context.Background(), "demo", api.WithFilters(tc.filters))
 
 			require.NoError(t, err)
 
 			// verifying if the data read from fs is the same as the provided test data
+
+			patchData, err = utils.FilterPatch(patchData, tc.filters)
+			require.NoError(t, err)
+
+			readServer, err = utils.FilterPatch(readServer, tc.filters)
+			require.NoError(t, err)
+
 			d, err := diff.Tree(patchData, readServer)
 			require.NoError(t, err)
 			require.Empty(t, d)
