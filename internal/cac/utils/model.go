@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FromTreeServerToPatch(data *models.TreeServer) (models.Rfc7396PatchOperation, error) {
+func FromModelToPatch[T any](data *T) (models.Rfc7396PatchOperation, error) {
 	var (
 		out = models.Rfc7396PatchOperation{}
 		bts []byte
@@ -24,9 +24,9 @@ func FromTreeServerToPatch(data *models.TreeServer) (models.Rfc7396PatchOperatio
 	return out, nil
 }
 
-func FromPatchToTreeServer(patch models.Rfc7396PatchOperation) (*models.TreeServer, error) {
+func FromPatchToModel[T any](patch models.Rfc7396PatchOperation) (*T, error) {
 	var (
-		out = &models.TreeServer{}
+		out = new(T)
 		bts []byte
 		err error
 	)

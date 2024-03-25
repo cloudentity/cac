@@ -24,7 +24,7 @@ var (
 			)
 
 			slog.
-				With("workspace", diffConfig.Workspace).
+				With("workspace", rootConfig.Workspace).
 				With("config", rootConfig.ConfigPath).
 				With("profile", rootConfig.Profile).
 				With("source", diffConfig.Source).
@@ -46,7 +46,7 @@ var (
 
 			slog.Info("Comparing configurations", "source", source, "target", target)
 
-			if result, err = diff.Diff(cmd.Context(), source, target, diffConfig.Workspace,
+			if result, err = diff.Diff(cmd.Context(), source, target, rootConfig.Workspace,
 				diff.Colorize(diffConfig.Colors),
 				diff.OnlyPresent(diffConfig.OnlyPresent),
 				diff.Filters(diffConfig.Filters...),
@@ -70,7 +70,6 @@ var (
 		},
 	}
 	diffConfig struct {
-		Workspace   string
 		Source      string
 		Target      string
 		WithSecrets bool
@@ -84,11 +83,10 @@ var (
 func init() {
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Source, "source", "", "Source profile name")
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Target, "target", "", "Target profile name")
-	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to compare")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
 	diffCmd.PersistentFlags().StringSliceVar(&diffConfig.Filters, "filter", []string{}, "Compare only selected resources")
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Out, "out", "-", "Diff output. It can be a file or '-' for stdout")
 
-	mustMarkRequired(diffCmd, "source", "target", "workspace")
+	mustMarkRequired(diffCmd, "source", "target")
 }

@@ -27,7 +27,7 @@ func InitMultiStorage(config *MultiStorageConfiguration) (*MultiStorage, error) 
 	}
 
 	for _, config := range config.DirPath {
-		storages = append(storages, InitStorage(&Configuration{
+		storages = append(storages, InitServerStorage(&Configuration{
 			DirPath: config,
 		}))
 	}
@@ -47,12 +47,12 @@ var _ Storage = &MultiStorage{}
 var _ api.Source = &MultiStorage{}
 
 // Write for simplicity stores data in first storage only, it is responsibility of the user to move entities to other storages
-func (m *MultiStorage) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
-	return m.Storages[0].Write(ctx, workspace, data)
+func (m *MultiStorage) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+	return m.Storages[0].Write(ctx, data, opts...)
 }
 
 // Read data from all storages and merge them
-func (m *MultiStorage) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (m *MultiStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
 		data = models.Rfc7396PatchOperation{}
 		err  error
@@ -61,7 +61,7 @@ func (m *MultiStorage) Read(ctx context.Context, workspace string, opts ...api.S
 	for i := len(m.Storages) - 1; i >= 0; i-- {
 		var data2 models.Rfc7396PatchOperation
 
-		if data2, err = m.Storages[i].Read(ctx, workspace, opts...); err != nil {
+		if data2, err = m.Storages[i].Read(ctx, opts...); err != nil {
 			return data, errors.Wrap(err, "failed to read data from storage")
 		}
 

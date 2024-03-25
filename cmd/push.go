@@ -29,11 +29,11 @@ var (
 				return err
 			}
 
-			if data, err = app.Storage.Read(cmd.Context(), pushConfig.Workspace); err != nil {
+			if data, err = app.Storage.Read(cmd.Context(), api.WithWorkspace(rootConfig.Workspace)); err != nil {
 				return err
 			}
 
-			if serv, err = utils.FromPatchToTreeServer(data); err != nil {
+			if serv, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
 				return err
 			}
 
@@ -71,11 +71,11 @@ var (
 						}
 
 						if info.IsDir() {
-							dryStorage := storage.InitStorage(&storage.Configuration{
+							dryStorage := storage.InitServerStorage(&storage.Configuration{
 								DirPath: pushConfig.Out,
 							})
 
-							if err = dryStorage.Write(cmd.Context(), pushConfig.Workspace, data); err != nil {
+							if err = dryStorage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
 								return err
 							}
 
@@ -96,30 +96,34 @@ var (
 				}
 			}
 
-			if err = app.Client.Write(cmd.Context(), pushConfig.Workspace, data, api.WithMode(pushConfig.Mode), api.WithMethod(pushConfig.Method)); err != nil {
+			if err = app.Client.Write(
+				cmd.Context(),
+				data,
+				api.WithWorkspace(rootConfig.Workspace),
+				api.WithMode(pushConfig.Mode),
+				api.WithMethod(pushConfig.Method),
+			); err != nil {
 				return errors.Wrap(err, "failed to push workspace configuration")
 			}
 
-			slog.Info("pushed workspace configuration", "workspace", pushConfig.Workspace)
+			slog.Info("pushed workspace configuration", "workspace", rootConfig.Workspace)
 
 			return nil
 		},
 	}
 	pushConfig struct {
-		Workspace string
-		DryRun    bool
-		Out       string
-		Mode      string
-		Method    string
+		DryRun bool
+		Out    string
+		Mode   string
+		Method string
 	}
 )
 
 func init() {
-	pushCmd.PersistentFlags().StringVar(&pushConfig.Workspace, "workspace", "", "Workspace to load")
 	pushCmd.PersistentFlags().BoolVar(&pushConfig.DryRun, "dry-run", false, "Write files to disk instead of pushing to server")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file, directory or '-' for stdout")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Mode, "mode", "update", "One of ignore, fail, update")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Method, "method", "", "One of patch (merges remote with your config before applying), import (replaces remote with your config)")
 
-	mustMarkRequired(pushCmd, "workspace", "method")
+	mustMarkRequired(pushCmd, "method")
 }

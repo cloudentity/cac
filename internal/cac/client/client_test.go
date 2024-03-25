@@ -53,7 +53,7 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		_, err = c.Read(context.Background(), "admin", api.WithSecrets(false))
+		_, err = c.Read(context.Background(), api.WithSecrets(false), api.WithWorkspace("demo"))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unknown client, no client authentication included, or unsupported authentication method")
 	})
