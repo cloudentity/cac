@@ -74,10 +74,13 @@ var staticFilterMappings = map[string]string{
 }
 
 func FilterPatch(patch models.Rfc7396PatchOperation, filters []string) (models.Rfc7396PatchOperation, error) {
+	if len(filters) == 0 {
+		return patch, nil
+	}
+
 	var newPatch = models.Rfc7396PatchOperation{}
 
 	for _, filter := range filters {
-
 		if mapped, ok := staticFilterMappings[filter]; ok {
 			filter = mapped
 		}
