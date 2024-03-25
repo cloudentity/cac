@@ -8,7 +8,7 @@ import (
 
 func TestInitApp(t *testing.T) {
 	t.Run("InitApp", func(t *testing.T) {
-		app, err := cac.InitApp("./../../examples/e2e/config.yaml", "")
+		app, err := cac.InitApp("./../../examples/e2e/config.yaml", "", true)
 		require.NoError(t, err)
 
 		require.NotNil(t, app)

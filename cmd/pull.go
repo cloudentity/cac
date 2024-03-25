@@ -20,7 +20,7 @@ var (
 				err    error
 			)
 
-			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
 				return err
 			}
 

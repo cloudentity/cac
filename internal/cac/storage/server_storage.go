@@ -22,7 +22,7 @@ var DefaultConfig = Configuration{
 	DirPath: "data",
 }
 
-func InitServerStorage(config *Configuration) *ServerStorage {
+func InitServerStorage(config *Configuration) Storage {
 	return &ServerStorage{
 		Config: config,
 	}

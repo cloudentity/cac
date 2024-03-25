@@ -19,7 +19,9 @@ var DefaultMultiStorageConfig = func() *MultiStorageConfiguration {
 	}
 }
 
-func InitMultiStorage(config *MultiStorageConfiguration) (*MultiStorage, error) {
+type Constructor func(config *Configuration) Storage
+
+func InitMultiStorage(config *MultiStorageConfiguration, constr Constructor) (*MultiStorage, error) {
 	var storages []Storage
 
 	if len(config.DirPath) == 0 {

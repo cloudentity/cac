@@ -51,6 +51,10 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 		readOpts = append(readOpts, api.WithFilters(options.Filters))
 	}
 
+	if workspace != "" {
+		readOpts = append(readOpts, api.WithWorkspace(workspace))
+	}
+
 	if server1, err = source.Read(ctx, readOpts...); err != nil {
 		return "", err
 	}

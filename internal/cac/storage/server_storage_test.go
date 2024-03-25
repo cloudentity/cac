@@ -600,7 +600,7 @@ system: false`, string(bts))
 
 			st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
 				DirPath: []string{t.TempDir(), t.TempDir()},
-			})
+			}, storage.InitServerStorage)
 
 			require.NoError(t, err)
 

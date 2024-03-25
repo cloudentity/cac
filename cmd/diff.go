@@ -32,15 +32,15 @@ var (
 				With("out", diffConfig.Out).
 				Info("Comparing workspace configuration")
 
-			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
 				return err
 			}
 
-			if source, err = app.PickSource(diffConfig.Source); err != nil {
+			if source, err = app.PickSource(diffConfig.Source, rootConfig.Tenant); err != nil {
 				return err
 			}
 
-			if target, err = app.PickSource(diffConfig.Target); err != nil {
+			if target, err = app.PickSource(diffConfig.Target, rootConfig.Tenant); err != nil {
 				return err
 			}
 
