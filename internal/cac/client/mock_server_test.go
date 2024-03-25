@@ -62,7 +62,6 @@ func CreateMockServer(t *testing.T) *httptest.Server {
 
 		_, err = res.Write(js)
 		require.NoError(t, err)
-		return
 	}))
 
 	return testServer
