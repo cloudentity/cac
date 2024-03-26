@@ -2,6 +2,7 @@ package client_test
 
 import (
 	"context"
+	"fmt"
 	acpclient "github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/client"
@@ -56,5 +57,59 @@ func TestClient(t *testing.T) {
 		_, err = c.Read(context.Background(), "admin", api.WithSecrets(false))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unknown client, no client authentication included, or unsupported authentication method")
+	})
+
+	t.Run("client pull configuration without filters", func(t *testing.T) {
+		testServer := CreateMockServer(t)
+		issuer, _ := url.Parse(fmt.Sprintf("%s/demo/system", testServer.URL))
+
+		c, err := client.InitClient(&client.Configuration{
+			Insecure: true,
+			Config: acpclient.Config{
+				IssuerURL:    issuer,
+				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
+				ClientSecret: "valid_secret",
+			},
+		})
+		require.NoError(t, err)
+
+		data, err := c.Read(
+			context.Background(),
+			"admin",
+			api.WithSecrets(false),
+		)
+
+		require.NoError(t, err)
+
+		require.Len(t, data["clients"], 1)
+		require.Len(t, data["idps"], 1)
+		require.Equal(t, "demo workspace", data["name"])
+	})
+
+	t.Run("client pull configuration and filter", func(t *testing.T) {
+		testServer := CreateMockServer(t)
+		issuer, _ := url.Parse(fmt.Sprintf("%s/demo/system", testServer.URL))
+
+		c, err := client.InitClient(&client.Configuration{
+			Insecure: true,
+			Config: acpclient.Config{
+				IssuerURL:    issuer,
+				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
+				ClientSecret: "valid_secret",
+			},
+		})
+		require.NoError(t, err)
+
+		data, err := c.Read(
+			context.Background(),
+			"admin",
+			api.WithSecrets(false),
+			api.WithFilters([]string{"clients"}),
+		)
+
+		require.NoError(t, err)
+
+		require.Len(t, data["clients"], 1)
+		require.Nil(t, data["idps"])
 	})
 }
