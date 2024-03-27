@@ -8,6 +8,7 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
+	"github.com/go-openapi/runtime"
 )
 
 type TenantClient struct {
@@ -27,7 +28,7 @@ func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (models.
 	}
 
 	if ok, err = t.acp.Hub.TenantConfiguration.ExportTenantConfig(tenant_configuration.NewExportTenantConfigParamsWithContext(ctx).
-		WithTid(t.acp.Config.TenantID), nil, nil,
+		WithTid(t.acp.Config.TenantID), nil,
 	); err != nil {
 		return nil, err
 	}
@@ -82,7 +83,7 @@ func (t *TenantClient) Import(ctx context.Context, mode string, data models.Rfc7
 	if _, err = t.acp.Hub.TenantConfiguration.ImportTenantConfig(tenant_configuration.NewImportTenantConfigParamsWithContext(ctx).
 		WithTid(t.acp.Config.TenantID).
 		WithMode(&mode).
-		WithConfig(model), nil, nil,
+		WithConfig(model), nil,
 	); err != nil {
 		return err
 	}
@@ -96,7 +97,9 @@ func (t *TenantClient) Patch(ctx context.Context, mode string, data models.Rfc73
 	if _, err = t.acp.Hub.TenantConfiguration.PatchTenantConfigRfc7396(tenant_configuration.NewPatchTenantConfigRfc7396ParamsWithContext(ctx).
 		WithTid(t.acp.Config.TenantID).
 		WithMode(&mode).
-		WithPatch(data), nil, nil,
+		WithPatch(data), nil, func(operation *runtime.ClientOperation) {
+		operation.PathPattern = "/promote/config-rfc7396"
+	},
 	); err != nil {
 		return err
 	}

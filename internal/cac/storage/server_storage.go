@@ -49,7 +49,7 @@ func (s *ServerStorage) Write(ctx context.Context, input models.Rfc7396PatchOper
 	}
 
 	if workspace = options.Workspace; workspace == "" {
-		return errors.New("workspace is required")
+		return errors.New("workspace is required to write to server storage")
 	}
 
 	workspacePath = s.workspacePath(workspace)
@@ -169,7 +169,7 @@ func (s *ServerStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 	}
 
 	if workspace = options.Workspace; workspace == "" {
-		return nil, errors.New("workspace is required")
+		return nil, errors.New("workspace is required to read from server storage")
 	}
 
 	path = s.workspacePath(workspace)

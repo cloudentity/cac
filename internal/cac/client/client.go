@@ -61,7 +61,7 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc739
 	}
 
 	if workspace = options.Workspace; workspace == "" {
-		return nil, errors.New("workspace is required")
+		return nil, errors.New("workspace is required to read using server client")
 	}
 
 	if ok, err = c.acp.Hub.WorkspaceConfiguration.
@@ -96,7 +96,7 @@ func (c *Client) Write(ctx context.Context, data models.Rfc7396PatchOperation, o
 	}
 
 	if workspace = options.Workspace; workspace == "" {
-		return errors.New("workspace is required")
+		return errors.New("workspace is required to write using server client")
 	}
 
 	switch options.Method {

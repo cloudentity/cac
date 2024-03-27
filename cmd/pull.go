@@ -14,10 +14,9 @@ var (
 		Short: "Pull existing configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
-				app    *cac.Application
-				data   models.Rfc7396PatchOperation
-				source api.Source
-				err    error
+				app  *cac.Application
+				data models.Rfc7396PatchOperation
+				err  error
 			)
 
 			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
@@ -31,13 +30,7 @@ var (
 				With("config", rootConfig.ConfigPath).
 				Info("Pulling workspace configuration")
 
-			source = app.Client
-
-			if rootConfig.Tenant {
-				source = app.Client.Tenant()
-			}
-
-			if data, err = source.Read(
+			if data, err = app.Client.Read(
 				cmd.Context(),
 				api.WithWorkspace(rootConfig.Workspace),
 				api.WithSecrets(pullConfig.WithSecrets),

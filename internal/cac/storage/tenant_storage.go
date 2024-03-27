@@ -33,13 +33,19 @@ func (t *TenantStorage) Write(ctx context.Context, data models.Rfc7396PatchOpera
 		return err
 	}
 
-	if err = t.storeTenant(model); err != nil {
+	if err = t.storeTenant(*model); err != nil {
 		return err
 	}
 
 	if err = writeFiles(model.Pools,
 		filepath.Join(path, "pools"),
 		func(id string, it models.TreePool) string { return it.Name }); err != nil {
+		return err
+	}
+
+	if err = writeFiles(model.Schemas,
+		filepath.Join(path, "schemas"),
+		func(id string, it models.TreeSchema) string { return it.Name }); err != nil {
 		return err
 	}
 
@@ -55,9 +61,14 @@ func (t *TenantStorage) Write(ctx context.Context, data models.Rfc7396PatchOpera
 		return err
 	}
 
-	for k := range model.Servers {
+	for k, server := range model.Servers {
 		opts = append(opts, api.WithWorkspace(k))
-		if err = t.ServerStorage.Write(ctx, data, opts...); err != nil {
+		var serverData models.Rfc7396PatchOperation
+		if serverData, err = utils.FromModelToPatch(&server); err != nil {
+			return err
+		}
+
+		if err = t.ServerStorage.Write(ctx, serverData, opts...); err != nil {
 			return err
 		}
 	}
@@ -86,6 +97,10 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 		return nil, err
 	}
 
+	if err = readFilesToMap(tenant, "schemas", filepath.Join(path, "schemas")); err != nil {
+		return nil, err
+	}
+
 	if err = readFilesToMap(tenant, "mfa_methods", filepath.Join(path, "mfa_methods")); err != nil {
 		return nil, err
 	}
@@ -94,7 +109,7 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 		return nil, err
 	}
 
-	if workspaces, err = listDirsInPath(path); err != nil {
+	if workspaces, err = listDirsInPath(filepath.Join(path, "workspaces")); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +124,10 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 				return nil, err
 			}
 
-			servers[workspaceConfig["id"].(string)] = workspaceConfig
+			id := workspaceConfig["id"].(string)
+			delete(workspaceConfig, "id")
+			delete(workspaceConfig, "tenant_id")
+			servers[id] = workspaceConfig
 		}
 
 		tenant["servers"] = servers
@@ -122,13 +140,19 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 	return tenant, nil
 }
 
-func (t *TenantStorage) storeTenant(data *models.TreeTenant) error {
+// storeTenant stores the tenant data in the file
+// it accepts a struct directly to make sure we only modify a copy
+func (t *TenantStorage) storeTenant(data models.TreeTenant) error {
 	var (
 		path   = filepath.Join(t.Config.DirPath, "tenant")
 		tenant = smodels.TenantDump{}
 		bts    []byte
 		err    error
 	)
+
+	data.MfaMethods = nil
+	data.Themes = nil
+	data.Servers = nil
 
 	// serialize the tenant data into system/models to remove the dependencies which are stored in separate files
 	if bts, err = json.Marshal(data); err != nil {

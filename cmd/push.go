@@ -22,6 +22,7 @@ var (
 				app  *cac.Application
 				data models.Rfc7396PatchOperation
 				serv *models.TreeServer
+				tena *models.TreeTenant
 				err  error
 			)
 
@@ -33,12 +34,23 @@ var (
 				return err
 			}
 
-			if serv, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
-				return err
-			}
+			if !rootConfig.Tenant {
+				if serv, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
+					return err
+				}
 
-			if err = serv.Validate(strfmt.Default); err != nil {
-				return err
+				if err = serv.Validate(strfmt.Default); err != nil {
+					return err
+				}
+
+			} else {
+				if tena, err = utils.FromPatchToModel[models.TreeTenant](data); err != nil {
+					return err
+				}
+
+				if err = tena.Validate(strfmt.Default); err != nil {
+					return err
+				}
 			}
 
 			if pushConfig.DryRun {
@@ -103,10 +115,10 @@ var (
 				api.WithMode(pushConfig.Mode),
 				api.WithMethod(pushConfig.Method),
 			); err != nil {
-				return errors.Wrap(err, "failed to push workspace configuration")
+				return errors.Wrap(err, "failed to push configuration")
 			}
 
-			slog.Info("pushed workspace configuration", "workspace", rootConfig.Workspace)
+			slog.Info("pushed configuration")
 
 			return nil
 		},

@@ -43,6 +43,11 @@ type Source interface {
 	String() string
 }
 
+type Mapper[T any] interface {
+	FromPatchToModel(patch models.Rfc7396PatchOperation) (*T, error)
+	FromModelToPatch(*T) (models.Rfc7396PatchOperation, error)
+}
+
 func WithSecrets(secrets bool) SourceOpt {
 	return func(o *Options) {
 		o.Secrets = secrets

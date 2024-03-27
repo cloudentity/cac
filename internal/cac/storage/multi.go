@@ -29,7 +29,7 @@ func InitMultiStorage(config *MultiStorageConfiguration, constr Constructor) (*M
 	}
 
 	for _, config := range config.DirPath {
-		storages = append(storages, InitServerStorage(&Configuration{
+		storages = append(storages, constr(&Configuration{
 			DirPath: config,
 		}))
 	}

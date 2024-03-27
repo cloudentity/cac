@@ -13,7 +13,7 @@ import (
 type Application struct {
 	Config     *config.Configuration
 	RootConfig *config.RootConfiguration
-	Client     *client.Client
+	Client     api.Source
 	Storage    storage.Storage
 }
 
@@ -35,8 +35,15 @@ func InitApp(configPath string, profile string, tenant bool) (app *Application, 
 	slog.Debug("config", "c", app.Config.Client)
 
 	if app.Config.Client != nil {
-		if app.Client, err = client.InitClient(app.Config.Client); err != nil {
+		var c *client.Client
+		if c, err = client.InitClient(app.Config.Client); err != nil {
 			return app, err
+		}
+
+		app.Client = c
+
+		if tenant {
+			app.Client = c.Tenant()
 		}
 	}
 
@@ -91,15 +98,20 @@ func (a *Application) PickSource(source string, tenant bool) (api.Source, error)
 	case api.SourceLocal:
 		return storage.InitMultiStorage(conf.Storage, constructor)
 	case api.SourceRemote:
-		if c, err := client.InitClient(conf.Client); err != nil {
-			return nil, err
-		} else {
-			if tenant {
-				return c.Tenant(), nil
-			}
+		var (
+			c   *client.Client
+			err error
+		)
 
-			return c, nil
+		if c, err = client.InitClient(conf.Client); err != nil {
+			return nil, err
 		}
+
+		if tenant {
+			return c.Tenant(), nil
+		}
+
+		return c, nil
 	}
 
 	return nil, api.ErrUnknownSource
