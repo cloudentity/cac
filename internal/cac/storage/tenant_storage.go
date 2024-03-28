@@ -3,10 +3,8 @@ package storage
 import (
 	"context"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
-	smodels "github.com/cloudentity/acp-client-go/clients/system/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/go-json-experiment/json"
 	"path/filepath"
 )
 
@@ -30,10 +28,6 @@ func (t *TenantStorage) Write(ctx context.Context, data models.Rfc7396PatchOpera
 	)
 
 	if model, err = utils.FromPatchToModel[models.TreeTenant](data); err != nil {
-		return err
-	}
-
-	if err = t.storeTenant(*model); err != nil {
 		return err
 	}
 
@@ -138,36 +132,6 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 	}
 
 	return tenant, nil
-}
-
-// storeTenant stores the tenant data in the file
-// it accepts a struct directly to make sure we only modify a copy
-func (t *TenantStorage) storeTenant(data models.TreeTenant) error {
-	var (
-		path   = filepath.Join(t.Config.DirPath, "tenant")
-		tenant = smodels.TenantDump{}
-		bts    []byte
-		err    error
-	)
-
-	data.MfaMethods = nil
-	data.Themes = nil
-	data.Servers = nil
-
-	// serialize the tenant data into system/models to remove the dependencies which are stored in separate files
-	if bts, err = json.Marshal(data); err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(bts, &tenant); err != nil {
-		return err
-	}
-
-	if err = writeFile(tenant, path); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 var _ Storage = &TenantStorage{}
