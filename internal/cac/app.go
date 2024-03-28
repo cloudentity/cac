@@ -4,6 +4,7 @@ import (
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/cloudentity/cac/internal/cac/config"
+	"github.com/cloudentity/cac/internal/cac/data"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
 	"golang.org/x/exp/slog"
@@ -15,6 +16,7 @@ type Application struct {
 	RootConfig *config.RootConfiguration
 	Client     api.Source
 	Storage    storage.Storage
+	Validator  data.ValidatorApi
 }
 
 func InitApp(configPath string, profile string, tenant bool) (app *Application, err error) {
@@ -49,8 +51,12 @@ func InitApp(configPath string, profile string, tenant bool) (app *Application, 
 
 	var constructor = storage.InitServerStorage
 
+	app.Validator = &data.ServerValidator{}
+
 	if tenant {
 		constructor = storage.InitTenantStorage
+		app.
+		= &data.TenantValidator{}
 	}
 
 	if app.Config.Storage != nil {
