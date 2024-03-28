@@ -115,10 +115,6 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 		return "", err
 	}
 
-	if server1, err = source.Read(ctx, workspace, readOpts...); err != nil {
-		return "", err
-	}
-
 	if server2, err = target.Read(ctx, readOpts...); err != nil {
 		return "", err
 	}

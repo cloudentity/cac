@@ -75,13 +75,14 @@ var (
 		},
 	}
 	diffConfig struct {
-		Source      string
-		Target      string
-		WithSecrets bool
-		Colors      bool
-		OnlyPresent bool
-		Filters     []string
-		Out         stringFilterVolatile bool
+		Source         string
+		Target         string
+		WithSecrets    bool
+		Colors         bool
+		OnlyPresent    bool
+		Filters        []string
+		Out            string
+		FilterVolatile bool
 	}
 )
 
