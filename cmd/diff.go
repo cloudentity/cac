@@ -24,7 +24,7 @@ var (
 			)
 
 			slog.
-				With("workspace", diffConfig.Workspace).
+				With("workspace", rootConfig.Workspace).
 				With("config", rootConfig.ConfigPath).
 				With("profile", rootConfig.Profile).
 				With("source", diffConfig.Source).
@@ -35,21 +35,21 @@ var (
 				With("out", diffConfig.Out).
 				Info("Comparing workspace configuration")
 
-			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
 				return err
 			}
 
-			if source, err = app.PickSource(diffConfig.Source); err != nil {
+			if source, err = app.PickSource(diffConfig.Source, rootConfig.Tenant); err != nil {
 				return err
 			}
 
-			if target, err = app.PickSource(diffConfig.Target); err != nil {
+			if target, err = app.PickSource(diffConfig.Target, rootConfig.Tenant); err != nil {
 				return err
 			}
 
 			slog.Info("Comparing configurations", "source", source, "target", target)
 
-			if result, err = diff.Diff(cmd.Context(), source, target, diffConfig.Workspace,
+			if result, err = diff.Diff(cmd.Context(), source, target, rootConfig.Workspace,
 				diff.Colorize(diffConfig.Colors),
 				diff.OnlyPresent(diffConfig.OnlyPresent),
 				diff.Filters(diffConfig.Filters...),
@@ -75,7 +75,6 @@ var (
 		},
 	}
 	diffConfig struct {
-		Workspace      string
 		Source         string
 		Target         string
 		WithSecrets    bool
@@ -90,7 +89,6 @@ var (
 func init() {
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Source, "source", "", "Source profile name")
 	diffCmd.PersistentFlags().StringVar(&diffConfig.Target, "target", "", "Target profile name")
-	diffCmd.PersistentFlags().StringVar(&diffConfig.Workspace, "workspace", "", "Workspace to compare")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.Colors, "colors", true, "Colorize output")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.OnlyPresent, "only-present", false, "Compare only resources present at source")
 	diffCmd.PersistentFlags().StringSliceVar(&diffConfig.Filters, "filter", []string{}, "Compare only selected resources")
@@ -98,5 +96,5 @@ func init() {
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.WithSecrets, "with-secrets", false, "Compare secrets")
 	diffCmd.PersistentFlags().BoolVar(&diffConfig.FilterVolatile, "no-volatile", false, "Ignore volatile fields")
 
-	mustMarkRequired(diffCmd, "source", "target", "workspace")
+	mustMarkRequired(diffCmd, "source", "target")
 }

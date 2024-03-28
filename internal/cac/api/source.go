@@ -27,19 +27,25 @@ func SourceFromString(s string) (SourceType, error) {
 }
 
 type Options struct {
-	Secrets bool
-	Mode    string
-	Method  string
-	Filters []string
+	Secrets   bool
+	Mode      string
+	Method    string
+	Filters   []string
+	Workspace string
 }
 
 type SourceOpt func(*Options)
 
 type Source interface {
-	Read(ctx context.Context, workspace string, opts ...SourceOpt) (models.Rfc7396PatchOperation, error)
-	Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...SourceOpt) error
+	Read(ctx context.Context, opts ...SourceOpt) (models.Rfc7396PatchOperation, error)
+	Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...SourceOpt) error
 
 	String() string
+}
+
+type Mapper[T any] interface {
+	FromPatchToModel(patch models.Rfc7396PatchOperation) (*T, error)
+	FromModelToPatch(*T) (models.Rfc7396PatchOperation, error)
 }
 
 func WithSecrets(secrets bool) SourceOpt {
@@ -67,5 +73,11 @@ func WithFilters(filters []string) SourceOpt {
 func WithMethod(method string) SourceOpt {
 	return func(options *Options) {
 		options.Method = method
+	}
+}
+
+func WithWorkspace(workspace string) SourceOpt {
+	return func(options *Options) {
+		options.Workspace = workspace
 	}
 }

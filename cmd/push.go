@@ -22,23 +22,35 @@ var (
 				app  *cac.Application
 				data models.Rfc7396PatchOperation
 				serv *models.TreeServer
+				tena *models.TreeTenant
 				err  error
 			)
 
-			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
 				return err
 			}
 
-			if data, err = app.Storage.Read(cmd.Context(), pushConfig.Workspace); err != nil {
+			if data, err = app.Storage.Read(cmd.Context(), api.WithWorkspace(rootConfig.Workspace)); err != nil {
 				return err
 			}
 
-			if serv, err = utils.FromPatchToTreeServer(data); err != nil {
-				return err
-			}
+			if !rootConfig.Tenant {
+				if serv, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
+					return err
+				}
 
-			if err = serv.Validate(strfmt.Default); err != nil {
-				return err
+				if err = serv.Validate(strfmt.Default); err != nil {
+					return err
+				}
+
+			} else {
+				if tena, err = utils.FromPatchToModel[models.TreeTenant](data); err != nil {
+					return err
+				}
+
+				if err = tena.Validate(strfmt.Default); err != nil {
+					return err
+				}
 			}
 
 			if pushConfig.DryRun {
@@ -71,11 +83,11 @@ var (
 						}
 
 						if info.IsDir() {
-							dryStorage := storage.InitStorage(&storage.Configuration{
+							dryStorage := storage.InitServerStorage(&storage.Configuration{
 								DirPath: pushConfig.Out,
 							})
 
-							if err = dryStorage.Write(cmd.Context(), pushConfig.Workspace, data); err != nil {
+							if err = dryStorage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
 								return err
 							}
 
@@ -96,30 +108,34 @@ var (
 				}
 			}
 
-			if err = app.Client.Write(cmd.Context(), pushConfig.Workspace, data, api.WithMode(pushConfig.Mode), api.WithMethod(pushConfig.Method)); err != nil {
-				return errors.Wrap(err, "failed to push workspace configuration")
+			if err = app.Client.Write(
+				cmd.Context(),
+				data,
+				api.WithWorkspace(rootConfig.Workspace),
+				api.WithMode(pushConfig.Mode),
+				api.WithMethod(pushConfig.Method),
+			); err != nil {
+				return errors.Wrap(err, "failed to push configuration")
 			}
 
-			slog.Info("pushed workspace configuration", "workspace", pushConfig.Workspace)
+			slog.Info("pushed configuration")
 
 			return nil
 		},
 	}
 	pushConfig struct {
-		Workspace string
-		DryRun    bool
-		Out       string
-		Mode      string
-		Method    string
+		DryRun bool
+		Out    string
+		Mode   string
+		Method string
 	}
 )
 
 func init() {
-	pushCmd.PersistentFlags().StringVar(&pushConfig.Workspace, "workspace", "", "Workspace to load")
 	pushCmd.PersistentFlags().BoolVar(&pushConfig.DryRun, "dry-run", false, "Write files to disk instead of pushing to server")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file, directory or '-' for stdout")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Mode, "mode", "update", "One of ignore, fail, update")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Method, "method", "", "One of patch (merges remote with your config before applying), import (replaces remote with your config)")
 
-	mustMarkRequired(pushCmd, "workspace", "method")
+	mustMarkRequired(pushCmd, "method")
 }

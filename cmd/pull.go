@@ -19,23 +19,27 @@ var (
 				err  error
 			)
 
-			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile); err != nil {
+			if app, err = cac.InitApp(rootConfig.ConfigPath, rootConfig.Profile, rootConfig.Tenant); err != nil {
 				return err
 			}
 
 			slog.
-				With("workspace", pullConfig.Workspace).
+				With("workspace", rootConfig.Workspace).
+				With("tenant", rootConfig.Tenant).
+				With("filters", pullConfig.Filters).
 				With("config", rootConfig.ConfigPath).
 				Info("Pulling workspace configuration")
 
-			if data, err = app.Client.Read(cmd.Context(), pullConfig.Workspace,
+			if data, err = app.Client.Read(
+				cmd.Context(),
+				api.WithWorkspace(rootConfig.Workspace),
 				api.WithSecrets(pullConfig.WithSecrets),
 				api.WithFilters(pullConfig.Filters),
 			); err != nil {
 				return err
 			}
 
-			if err = app.Storage.Write(cmd.Context(), pullConfig.Workspace, data); err != nil {
+			if err = app.Storage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
 				return err
 			}
 
@@ -43,14 +47,12 @@ var (
 		},
 	}
 	pullConfig struct {
-		Workspace   string
 		WithSecrets bool
 		Filters     []string
 	}
 )
 
 func init() {
-	pullCmd.PersistentFlags().StringVar(&pullConfig.Workspace, "workspace", "", "Workspace to load")
 	pullCmd.PersistentFlags().BoolVar(&pullConfig.WithSecrets, "with-secrets", false, "Pull secrets")
 	pullCmd.PersistentFlags().StringSliceVar(&pullConfig.Filters, "filter", []string{}, "Pull only selected resources")
 }

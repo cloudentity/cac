@@ -600,14 +600,14 @@ system: false`, string(bts))
 
 			st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
 				DirPath: []string{t.TempDir(), t.TempDir()},
-			})
+			}, storage.InitServerStorage)
 
 			require.NoError(t, err)
 
-			patchData, err := utils.FromTreeServerToPatch(tc.data)
+			patchData, err := utils.FromModelToPatch(tc.data)
 			require.NoError(t, err)
 
-			err = st.Write(context.Background(), "demo", patchData)
+			err = st.Write(context.Background(), patchData, api.WithWorkspace("demo"))
 			require.NoError(t, err)
 
 			var files []string
@@ -644,7 +644,9 @@ system: false`, string(bts))
 			}
 
 			var readServer models.Rfc7396PatchOperation
-			readServer, err = st.Read(context.Background(), "demo", api.WithFilters(tc.filters))
+			readServer, err = st.Read(context.Background(),
+				api.WithWorkspace("demo"),
+				api.WithFilters(tc.filters))
 
 			require.NoError(t, err)
 
