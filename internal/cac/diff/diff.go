@@ -152,7 +152,7 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 	if options.FilterVolatile {
 		diffOpts = append(diffOpts, filerVolatileFields)
 	}
-	
+
 	if !options.Secrets {
 		diffOpts = append(diffOpts, filterSecretFields)
 	}
@@ -160,7 +160,7 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 	var out = cmp.Diff(target, source, diffOpts)
 
 	if options.Color {
-		return out, nil
+		return colorize(out), nil
 	}
 
 	return out, nil
