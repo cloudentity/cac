@@ -55,8 +55,7 @@ func InitApp(configPath string, profile string, tenant bool) (app *Application, 
 
 	if tenant {
 		constructor = storage.InitTenantStorage
-		app.
-		= &data.TenantValidator{}
+		app.Validator = &data.TenantValidator{}
 	}
 
 	if app.Config.Storage != nil {
