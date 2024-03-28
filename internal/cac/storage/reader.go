@@ -96,3 +96,27 @@ func readFiles(path string, opts ...ReadFileOpt) (map[string]any, error) {
 
 	return out, nil
 }
+
+func listDirsInPath(path string) ([]string, error) {
+	var (
+		out []string
+		dir []os.DirEntry
+		err error
+	)
+
+	if dir, err = os.ReadDir(path); err != nil {
+		if os.IsNotExist(err) {
+			return out, nil
+		}
+
+		return out, err
+	}
+
+	for _, file := range dir {
+		if file.IsDir() {
+			out = append(out, file.Name())
+		}
+	}
+
+	return out, nil
+}

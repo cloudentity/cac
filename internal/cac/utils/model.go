@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FromTreeServerToPatch(data *models.TreeServer) (models.Rfc7396PatchOperation, error) {
+func FromModelToPatch[T any](data *T) (models.Rfc7396PatchOperation, error) {
 	var (
 		out = models.Rfc7396PatchOperation{}
 		bts []byte
@@ -14,7 +14,7 @@ func FromTreeServerToPatch(data *models.TreeServer) (models.Rfc7396PatchOperatio
 	)
 
 	if bts, err = json.Marshal(data, json.FormatNilMapAsNull(true)); err != nil {
-		return out, errors.Wrap(err, "failed to marshal tree server to yaml")
+		return out, errors.Wrapf(err, "failed to marshal %T to yaml", out)
 	}
 
 	if err = json.Unmarshal(bts, &out); err != nil {
@@ -24,9 +24,9 @@ func FromTreeServerToPatch(data *models.TreeServer) (models.Rfc7396PatchOperatio
 	return out, nil
 }
 
-func FromPatchToTreeServer(patch models.Rfc7396PatchOperation) (*models.TreeServer, error) {
+func FromPatchToModel[T any](patch models.Rfc7396PatchOperation) (*T, error) {
 	var (
-		out = &models.TreeServer{}
+		out = new(T)
 		bts []byte
 		err error
 	)
@@ -34,11 +34,11 @@ func FromPatchToTreeServer(patch models.Rfc7396PatchOperation) (*models.TreeServ
 	CleanPatch(patch)
 
 	if bts, err = json.Marshal(patch, json.FormatNilMapAsNull(true)); err != nil {
-		return out, errors.Wrap(err, "failed to marshal patch to yaml")
+		return out, errors.Wrap(err, "failed to marshal patch to json")
 	}
 
 	if err = json.Unmarshal(bts, out, json.RejectUnknownMembers(true)); err != nil {
-		return out, errors.Wrap(err, "failed to unmarshal yaml to tree server")
+		return out, errors.Wrapf(err, "failed to unmarshal json to %T", out)
 	}
 
 	return out, nil
@@ -52,11 +52,11 @@ func NormalizePatch(patch models.Rfc7396PatchOperation) (models.Rfc7396PatchOper
 	)
 
 	if bts, err = json.Marshal(patch, json.FormatNilMapAsNull(true)); err != nil {
-		return out, errors.Wrap(err, "failed to marshal patch to yaml")
+		return out, errors.Wrap(err, "failed to marshal patch to json")
 	}
 
 	if err = json.Unmarshal(bts, &out); err != nil {
-		return out, errors.Wrap(err, "failed to unmarshal yaml to patch")
+		return out, errors.Wrap(err, "failed to unmarshal json to patch")
 	}
 
 	return out, nil

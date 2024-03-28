@@ -42,6 +42,30 @@ func CreateMockServer(t *testing.T) *httptest.Server {
 			return
 		}
 
+		if req.URL.Path == "/api/hub/demo//promote/config" {
+			res.Header().Set("Content-Type", "application/json")
+			res.WriteHeader(http.StatusOK)
+			js, err := json.Marshal(models.TreeTenant{
+				Name: "demo tenant",
+				Servers: models.TreeServers{
+					"server1": models.TreeServer{
+						Name: "demo workspace",
+					},
+				},
+				MfaMethods: models.TreeMFAMethods{
+					"sms": models.TreeMFAMethod{
+						Enabled: true,
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			_, err = res.Write(js)
+			require.NoError(t, err)
+
+			return
+		}
+
 		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusOK)
 		js, err := json.Marshal(models.TreeServer{

@@ -13,11 +13,11 @@ import (
 type Application struct {
 	Config     *config.Configuration
 	RootConfig *config.RootConfiguration
-	Client     *client.Client
+	Client     api.Source
 	Storage    storage.Storage
 }
 
-func InitApp(configPath string, profile string) (app *Application, err error) {
+func InitApp(configPath string, profile string, tenant bool) (app *Application, err error) {
 	app = &Application{}
 
 	if app.RootConfig, err = config.InitConfig(configPath); err != nil {
@@ -35,13 +35,26 @@ func InitApp(configPath string, profile string) (app *Application, err error) {
 	slog.Debug("config", "c", app.Config.Client)
 
 	if app.Config.Client != nil {
-		if app.Client, err = client.InitClient(app.Config.Client); err != nil {
+		var c *client.Client
+		if c, err = client.InitClient(app.Config.Client); err != nil {
 			return app, err
+		}
+
+		app.Client = c
+
+		if tenant {
+			app.Client = c.Tenant()
 		}
 	}
 
+	var constructor = storage.InitServerStorage
+
+	if tenant {
+		constructor = storage.InitTenantStorage
+	}
+
 	if app.Config.Storage != nil {
-		if app.Storage, err = storage.InitMultiStorage(app.Config.Storage); err != nil {
+		if app.Storage, err = storage.InitMultiStorage(app.Config.Storage, constructor); err != nil {
 			return app, err
 		}
 	}
@@ -51,7 +64,7 @@ func InitApp(configPath string, profile string) (app *Application, err error) {
 	return app, nil
 }
 
-func (a *Application) PickSource(source string) (api.Source, error) {
+func (a *Application) PickSource(source string, tenant bool) (api.Source, error) {
 	var (
 		conf       *config.Configuration
 		sourceType api.SourceType
@@ -75,11 +88,30 @@ func (a *Application) PickSource(source string) (api.Source, error) {
 		return nil, err
 	}
 
+	var constructor = storage.InitServerStorage
+
+	if tenant {
+		constructor = storage.InitTenantStorage
+	}
+
 	switch sourceType {
 	case api.SourceLocal:
-		return storage.InitMultiStorage(conf.Storage)
+		return storage.InitMultiStorage(conf.Storage, constructor)
 	case api.SourceRemote:
-		return client.InitClient(conf.Client)
+		var (
+			c   *client.Client
+			err error
+		)
+
+		if c, err = client.InitClient(conf.Client); err != nil {
+			return nil, err
+		}
+
+		if tenant {
+			return c.Tenant(), nil
+		}
+
+		return c, nil
 	}
 
 	return nil, api.ErrUnknownSource

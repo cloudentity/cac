@@ -47,16 +47,21 @@ func InitClient(config *Configuration) (c *Client, err error) {
 	}, nil
 }
 
-func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
 	var (
-		options = &api.Options{}
-		ok      *workspace_configuration.ExportWorkspaceConfigOK
-		data    models.Rfc7396PatchOperation
-		err     error
+		options   = &api.Options{}
+		ok        *workspace_configuration.ExportWorkspaceConfigOK
+		data      models.Rfc7396PatchOperation
+		workspace string
+		err       error
 	)
 
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	if workspace = options.Workspace; workspace == "" {
+		return nil, errors.New("workspace is required to read using server client")
 	}
 
 	if ok, err = c.acp.Hub.WorkspaceConfiguration.
@@ -68,7 +73,7 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 		return nil, err
 	}
 
-	if data, err = utils.FromTreeServerToPatch(ok.Payload); err != nil {
+	if data, err = utils.FromModelToPatch(ok.Payload); err != nil {
 		return nil, errors.Wrap(err, "failed to convert tree server to patch")
 	}
 
@@ -79,14 +84,19 @@ func (c *Client) Read(ctx context.Context, workspace string, opts ...api.SourceO
 	return data, nil
 }
 
-func (c *Client) Write(ctx context.Context, workspace string, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (c *Client) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
 	var (
-		options = &api.Options{}
-		err     error
+		options   = &api.Options{}
+		workspace string
+		err       error
 	)
 
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	if workspace = options.Workspace; workspace == "" {
+		return errors.New("workspace is required to write using server client")
 	}
 
 	switch options.Method {
@@ -131,7 +141,7 @@ func (c *Client) Import(ctx context.Context, workspace string, mode string, data
 		out *models.TreeServer
 	)
 
-	if out, err = utils.FromPatchToTreeServer(data); err != nil {
+	if out, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
 		return err
 	}
 
@@ -148,6 +158,12 @@ func (c *Client) Import(ctx context.Context, workspace string, mode string, data
 	}
 
 	return nil
+}
+
+func (c *Client) Tenant() *TenantClient {
+	return &TenantClient{
+		acp: c.acp,
+	}
 }
 
 func (c *Client) String() string {
