@@ -6,12 +6,16 @@ import (
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/google/go-cmp/cmp"
+	"golang.org/x/exp/slog"
+	"regexp"
 )
 
 type Options struct {
 	Color           bool
 	PresentAtSource bool
 	Filters         []string
+	Secrets         bool
+	FilterVolatile  bool
 }
 
 type Option func(*Options)
@@ -34,6 +38,54 @@ func Filters(filters ...string) Option {
 	}
 }
 
+func WithSecrets(secrets bool) Option {
+	return func(options *Options) {
+		options.Secrets = secrets
+	}
+}
+
+func FilterVolatileFields(filterVolatile bool) Option {
+	return func(options *Options) {
+		options.FilterVolatile = filterVolatile
+	}
+}
+
+var secretFields = []string{
+	"rotated_secrets",
+	"hashed_rotated_secret",
+	"\\{models.Rfc7396PatchOperation\\}\\[\\\"jwks\\\"\\]", // workspace jwks (when comparing workspace config
+	"servers.*jwks", // workspace jwks (when comparing tenant config)
+	"webhooks.*api_key",
+}
+
+var volatileFields = []string{
+	"updated_at",
+	"last_active",
+}
+
+var fieldsFilter = func(fields []string) cmp.Option {
+	return cmp.FilterPath(func(p cmp.Path) bool {
+		for _, vf := range fields {
+			result, err := regexp.MatchString(vf, p.GoString())
+
+			if err != nil {
+				slog.Error("failed to match field", "field", vf, "error", err)
+				return false
+			}
+
+			if result {
+				return true
+			}
+
+			continue
+		}
+		return false
+	}, cmp.Ignore())
+}
+
+var filerVolatileFields = fieldsFilter(volatileFields)
+var filterSecretFields = fieldsFilter(secretFields)
+
 func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
 	var (
 		server1  models.Rfc7396PatchOperation
@@ -55,7 +107,15 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 		readOpts = append(readOpts, api.WithWorkspace(workspace))
 	}
 
+	if options.Secrets {
+		readOpts = append(readOpts, api.WithSecrets(true))
+	}
+
 	if server1, err = source.Read(ctx, readOpts...); err != nil {
+		return "", err
+	}
+
+	if server1, err = source.Read(ctx, workspace, readOpts...); err != nil {
 		return "", err
 	}
 
@@ -68,8 +128,9 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 
 func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperation, opts ...Option) (string, error) {
 	var (
-		options = &Options{}
-		err     error
+		options  = &Options{}
+		diffOpts = cmp.Options{}
+		err      error
 	)
 
 	for _, opt := range opts {
@@ -96,7 +157,15 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		}
 	}
 
-	var out = cmp.Diff(target, source)
+	if options.FilterVolatile {
+		diffOpts = append(diffOpts, filerVolatileFields)
+	}
+
+	if !options.Secrets {
+		diffOpts = append(diffOpts, filterSecretFields)
+	}
+
+	var out = cmp.Diff(target, source, diffOpts)
 
 	if options.Color {
 		return colorize(out), nil
