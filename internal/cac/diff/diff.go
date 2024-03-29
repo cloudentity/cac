@@ -56,6 +56,7 @@ var secretFields = []string{
 	"\\{models.Rfc7396PatchOperation\\}\\[\\\"jwks\\\"\\]", // workspace jwks (when comparing workspace config
 	"servers.*jwks", // workspace jwks (when comparing tenant config)
 	"webhooks.*api_key",
+	"mfa_methods.*auth",
 }
 
 var volatileFields = []string{
