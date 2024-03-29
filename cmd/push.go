@@ -5,12 +5,9 @@ import (
 	"github.com/cloudentity/cac/internal/cac"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/storage"
-	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/go-openapi/strfmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
-	"os"
 )
 
 var (
@@ -21,8 +18,6 @@ var (
 			var (
 				app  *cac.Application
 				data models.Rfc7396PatchOperation
-				serv *models.TreeServer
-				tena *models.TreeTenant
 				err  error
 			)
 
@@ -34,78 +29,31 @@ var (
 				return err
 			}
 
-			if !rootConfig.Tenant {
-				if serv, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
-					return err
-				}
-
-				if err = serv.Validate(strfmt.Default); err != nil {
-					return err
-				}
-
-			} else {
-				if tena, err = utils.FromPatchToModel[models.TreeTenant](data); err != nil {
-					return err
-				}
-
-				if err = tena.Validate(strfmt.Default); err != nil {
-					return err
-				}
+			if err = app.Validator.Validate(&data); err != nil {
+				return errors.Wrap(err, "failed to validate configuration")
 			}
 
 			if pushConfig.DryRun {
-				var bts []byte
 				slog.Info("dry run enabled, storing files to disk instead of pushing to server")
 
-				if pushConfig.Out == "-" {
-					if bts, err = utils.ToYaml(data); err != nil {
-						return err
-					}
+				var (
+					dryStorage storage.Storage
+					constr     = storage.InitServerStorage
+				)
 
-					_, err = os.Stdout.Write(bts)
-					return err
+				if rootConfig.Tenant {
+					constr = storage.InitTenantStorage
 				}
 
-				if pushConfig.Out != "" {
-					var (
-						file *os.File
-						info os.FileInfo
-					)
-
-					if file, err = os.OpenFile(pushConfig.Out, os.O_RDONLY, 0644); err != nil && !os.IsNotExist(err) {
-						return err
-					} else if err == nil {
-						// file already exists
-						defer file.Close()
-
-						if info, err = file.Stat(); err != nil {
-							return err
-						}
-
-						if info.IsDir() {
-							dryStorage := storage.InitServerStorage(&storage.Configuration{
-								DirPath: pushConfig.Out,
-							})
-
-							if err = dryStorage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
-								return err
-							}
-
-							return nil
-						}
-					}
-
-					if bts, err = utils.ToYaml(data); err != nil {
-						return err
-					}
-
-					// file does not exist or is not a directory
-					if err = os.WriteFile(pushConfig.Out, bts, 0644); err != nil {
-						return err
-					}
-
-					return nil
+				if dryStorage, err = storage.InitDryStorage(pushConfig.Out, constr); err != nil {
+					return errors.Wrap(err, "failed to initialize dry storage")
 				}
+
+				if err = dryStorage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
+					return errors.Wrap(err, "failed to write configuration")
+				}
+
+				return nil
 			}
 
 			if err = app.Client.Write(
