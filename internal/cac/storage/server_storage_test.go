@@ -655,9 +655,6 @@ system: false`, string(bts))
 			patchData, err = utils.FilterPatch(patchData, tc.filters)
 			require.NoError(t, err)
 
-			readServer, err = utils.FilterPatch(readServer, tc.filters)
-			require.NoError(t, err)
-
 			d, err := diff.Tree(patchData, readServer)
 			require.NoError(t, err)
 			require.Empty(t, d)
