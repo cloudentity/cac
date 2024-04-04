@@ -25,7 +25,11 @@ var (
 				return err
 			}
 
-			if data, err = app.Storage.Read(cmd.Context(), api.WithWorkspace(rootConfig.Workspace)); err != nil {
+			if data, err = app.Storage.Read(
+				cmd.Context(),
+				api.WithWorkspace(rootConfig.Workspace),
+				api.WithFilters(pushConfig.Filters),
+			); err != nil {
 				return err
 			}
 
@@ -72,10 +76,11 @@ var (
 		},
 	}
 	pushConfig struct {
-		DryRun bool
-		Out    string
-		Mode   string
-		Method string
+		DryRun  bool
+		Out     string
+		Mode    string
+		Method  string
+		Filters []string
 	}
 )
 
@@ -84,6 +89,7 @@ func init() {
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Out, "out", "-", "Dry execution output. It can be a file, directory or '-' for stdout")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Mode, "mode", "update", "One of ignore, fail, update")
 	pushCmd.PersistentFlags().StringVar(&pushConfig.Method, "method", "", "One of patch (merges remote with your config before applying), import (replaces remote with your config)")
+	pushCmd.PersistentFlags().StringSliceVar(&pushConfig.Filters, "filter", []string{}, "Push only selected resources")
 
 	mustMarkRequired(pushCmd, "method")
 }

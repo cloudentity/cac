@@ -112,7 +112,8 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 
 		for _, workspace := range workspaces {
 			var workspaceConfig models.Rfc7396PatchOperation
-			opts = append(opts, api.WithWorkspace(workspace))
+
+			opts = append(opts, api.WithWorkspace(workspace), api.WithFilters([]string{}))
 
 			if workspaceConfig, err = t.ServerStorage.Read(ctx, opts...); err != nil {
 				return nil, err

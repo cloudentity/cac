@@ -26,7 +26,7 @@ func TestTenantStorage(t *testing.T) {
 		assert  func(t *testing.T, path string, bts []byte)
 	}{
 		{
-			desc: "server",
+			desc: "workspace and mfa_methods",
 			data: &models.TreeTenant{
 				Servers: models.TreeServers{
 					"demo": models.TreeServer{
@@ -99,6 +99,43 @@ version: 0`, string(bts))
 				}
 			},
 		},
+		{
+			desc:    "filtered workspace and mfa_methods",
+			filters: []string{"mfa_methods"},
+			data: &models.TreeTenant{
+				Servers: models.TreeServers{
+					"demo": models.TreeServer{
+						Name:           "demo workspace",
+						AccessTokenTTL: strfmt.Duration(time.Minute * 10),
+						Idps: models.TreeIDPs{
+							"oidc": models.TreeIDP{
+								Name:     "oidc",
+								Disabled: true,
+							},
+						},
+					},
+				},
+				MfaMethods: models.TreeMFAMethods{
+					"sms": models.TreeMFAMethod{
+						Enabled:   true,
+						Mechanism: "sms",
+					},
+				},
+			},
+			files: []string{
+				"mfa_methods/sms.yaml",
+				"workspaces/demo/server.yaml",
+				"workspaces/demo/idps/oidc.yaml",
+			},
+			assert: func(t *testing.T, path string, bts []byte) {
+				switch path {
+				case "mfa_methods/sms.yaml":
+					require.YAMLEq(t, `enabled: true
+id: sms
+mechanism: sms`, string(bts))
+				}
+			},
+		},
 	}
 
 	for _, tc := range tcs {
@@ -162,11 +199,7 @@ version: 0`, string(bts))
 			require.NoError(t, err)
 
 			// verifying if the data read from fs is the same as the provided test data
-
 			patchData, err = utils.FilterPatch(patchData, tc.filters)
-			require.NoError(t, err)
-
-			readServer, err = utils.FilterPatch(readServer, tc.filters)
 			require.NoError(t, err)
 
 			d, err := diff.Tree(patchData, readServer)
