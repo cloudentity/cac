@@ -20,3 +20,13 @@ jobs:
             args: --help
         - run: echo -e "${{ steps.cac.outputs.result }}"
           name: print action output
+    negative-test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+          - uses: ./
+            id: cac
+            with:
+              args: --invalid cmd
+          - if: ${{ failure() }}
+            run: echo "Command failed as expected"
