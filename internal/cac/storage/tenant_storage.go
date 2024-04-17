@@ -156,7 +156,9 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
         themes[themeConfig["name"].(string)] = *theme
     }
 
-    tenant["themes"] = themes
+    if len(themes) > 0 {
+        tenant["themes"] = themes
+    }
 
     if workspaces, err = listDirsInPath(filepath.Join(path, "workspaces")); err != nil {
         return nil, err
