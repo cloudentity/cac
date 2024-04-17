@@ -9,6 +9,7 @@ github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3d
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/cloudentity/acp-client-go v0.0.0-20240129150633-7b99a6d70610 h1:s+l36Fw8xymJdUySqKMWZN/4fBi62CMUsuP8CfFn7PU=
 github.com/cloudentity/acp-client-go v0.0.0-20240129150633-7b99a6d70610/go.mod h1:dTHIsfs5YtDOH2CgeoHFlhfnnU1X+ohn+TIU30WlWQQ=
+github.com/cloudentity/acp-client-go v0.0.0-20240417080945-86a36fac2551/go.mod h1:dTHIsfs5YtDOH2CgeoHFlhfnnU1X+ohn+TIU30WlWQQ=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
