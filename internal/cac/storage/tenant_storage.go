@@ -130,6 +130,7 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
             themeConfig map[string]any
             theme       *models.TreeTheme
         )
+
         if themeConfig, err = readFile(filepath.Join(path, "themes", dir, "theme")); err != nil {
             return nil, err
         }
@@ -152,8 +153,10 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
         }
 
         theme.Templates = *templates
-        themes[themeConfig["id"].(string)] = *theme
+        themes[themeConfig["name"].(string)] = *theme
     }
+
+    tenant["themes"] = themes
 
     if workspaces, err = listDirsInPath(filepath.Join(path, "workspaces")); err != nil {
         return nil, err
