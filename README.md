@@ -7,7 +7,7 @@ This repository contains a CLI tool for managing Cloudentity configuration.
 ### As a go package
 
 ```bash
-go install github.com/cloudentity/cac
+go install github.com/cloudentity/cac@latest
 ```
 
 ## Configuration
