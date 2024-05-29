@@ -174,10 +174,10 @@ created_at: "0001-01-01T00:00:00.000Z"
 id: pages/error/index.tmpl
 updated_at: "0001-01-01T00:00:00.000Z"`, string(bts))
                 case "themes/theme1/templates/shared_footer.tmpl.yaml":
-                    require.Equal(t, `content: {{ include "shared_footer.tmpl" | nindent 2 }}
-created_at: "0001-01-01T00:00:00.000Z"
-id: shared/footer.tmpl
-updated_at: "0001-01-01T00:00:00.000Z"
+                    require.Equal(t, `id: shared/footer.tmpl
+content: {{ include "shared_footer.tmpl" | nindent 2 }}
+created_at: 0001-01-01T00:00:00.000Z
+updated_at: 0001-01-01T00:00:00.000Z
 `, string(bts))
                 }
             },

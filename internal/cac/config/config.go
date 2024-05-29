@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
@@ -9,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slog"
-	"strings"
 )
 
 var (

@@ -1,22 +1,24 @@
 package storage_test
 
 import (
-    "context"
-    "github.com/cloudentity/acp-client-go/clients/hub/models"
-    "github.com/cloudentity/cac/internal/cac/api"
-    "github.com/cloudentity/cac/internal/cac/diff"
-    "github.com/cloudentity/cac/internal/cac/logging"
-    "github.com/cloudentity/cac/internal/cac/storage"
-    "github.com/cloudentity/cac/internal/cac/utils"
-    "github.com/go-openapi/strfmt"
-    "github.com/stretchr/testify/require"
-    "io/fs"
-    "os"
-    "path/filepath"
-    "slices"
-    "strings"
-    "testing"
-    "time"
+	"context"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/config"
+	"github.com/cloudentity/cac/internal/cac/diff"
+	"github.com/cloudentity/cac/internal/cac/logging"
+	"github.com/cloudentity/cac/internal/cac/storage"
+	"github.com/cloudentity/cac/internal/cac/utils"
+	"github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/require"
 )
 
 var dateTime, _ = strfmt.ParseDateTime("2024-01-23T23:19:30.004+01:00")
@@ -91,7 +93,7 @@ backchannel_user_code_parameter: false
 client_id_issued_at: 0
 client_name: Demo Portal
 client_secret_expires_at: 0
-created_at: "0001-01-01T00:00:00.000Z"
+created_at: 0001-01-01T00:00:00.000Z
 dpop_bound_access_tokens: false
 dynamically_registered: false
 grant_types: []
@@ -105,7 +107,7 @@ scopes: []
 system: false
 tls_client_certificate_bound_access_tokens: false
 trusted: false
-updated_at: "0001-01-01T00:00:00.000Z"
+updated_at: 0001-01-01T00:00:00.000Z
 use_custom_token_ttls: false`, string(bts))
             },
         },
@@ -194,7 +196,7 @@ url: https://some-app.com`, string(bts))
             assert: func(t *testing.T, path string, bts []byte) {
                 require.YAMLEq(t, `create_and_bind_services_automatically: false
 id: some-gateway
-last_active: "0001-01-01T00:00:00.000Z"
+last_active: 0001-01-01T00:00:00.000Z
 name: Some Gateway`, string(bts))
             },
         },
@@ -349,7 +351,7 @@ scopes:
     transient: false
 system: false
 custom_audience: some_custom_audience
-updated_at: "2024-01-23T23:19:30.004+01:00"
+updated_at: 2024-01-23T23:19:30.004+01:00
 with_specification: false`, string(bts))
             },
         },
@@ -410,8 +412,8 @@ default allow = false
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 if strings.Contains(path, ".yaml") {
-                    require.Equal(t, `definition: {{ include "Some_Rego_Policy.rego" | nindent 2 }}
-id: some_policy
+                    require.Equal(t, `id: some_policy
+definition: {{ include "Some_Rego_Policy.rego" | nindent 2 }}
 language: rego
 policy_name: Some Rego Policy
 type: api
@@ -500,8 +502,8 @@ validators:
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 if strings.Contains(path, ".yaml") {
-                    require.Equal(t, `body: {{ include "Some_Script.js" | nindent 2 }}
-id: some_script
+                    require.Equal(t, `id: some_script
+body: {{ include "Some_Script.js" | nindent 2 }}
 name: Some Script
 `, string(bts))
                 } else {
@@ -538,8 +540,8 @@ name: Some Script
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 if strings.Contains(path, ".yaml") {
-                    require.Equal(t, `body: {{ include "Some_Script.js" | nindent 2 }}
-id: some_script
+                    require.Equal(t, `id: some_script
+body: {{ include "Some_Script.js" | nindent 2 }}
 name: Some Script
 `, string(bts))
                 } else {
@@ -595,10 +597,14 @@ system: false`, string(bts))
             },
         },
     }
-
+    
     for _, tc := range tcs {
         t.Run(tc.desc, func(t *testing.T) {
-            err := logging.InitLogging(&logging.Configuration{
+            _, err := config.InitConfig("")
+
+            require.NoError(t, err)
+
+            err = logging.InitLogging(&logging.Configuration{
                 Level: "debug",
             })
 
