@@ -2,9 +2,10 @@ package utils
 
 import (
 	"bytes"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"sigs.k8s.io/yaml"
+	ccyaml "github.com/goccy/go-yaml"
 )
 
 func ToYaml(it any) ([]byte, error) {
@@ -14,7 +15,10 @@ func ToYaml(it any) ([]byte, error) {
 	)
 
 	buffer := bytes.NewBuffer(bts)
-	enc := jsontext.NewEncoder(buffer, json.FormatNilMapAsNull(true), json.FormatNilSliceAsNull(true))
+	enc := jsontext.NewEncoder(buffer, 
+		json.FormatNilMapAsNull(true), 
+		json.FormatNilSliceAsNull(true),
+	)
 
 	if err = json.MarshalEncode(enc, it); err != nil {
 		return bts, err
@@ -22,7 +26,7 @@ func ToYaml(it any) ([]byte, error) {
 
 	bts = buffer.Bytes()
 
-	if bts, err = yaml.JSONToYAML(bts); err != nil {
+	if bts, err = ccyaml.JSONToYAML(bts); err != nil {
 		return bts, err
 	}
 

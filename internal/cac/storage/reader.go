@@ -42,7 +42,6 @@ func readFile(path string, opts ...ReadFileOpt) (map[string]any, error) {
 
 	slog.Debug("read template", "path", path, "data", bts)
 
-	// using goccy/go-yaml instead of sigs.k8s.io/yaml because it is better at handling multiline strings
 	if err = ccyaml.Unmarshal(bts, &out); err != nil {
 		return out, errors.Wrapf(err, "failed to unmarshal template %s", path)
 	}

@@ -1,11 +1,12 @@
 module github.com/cloudentity/cac
 
-go 1.21
+go 1.22
+
+toolchain go1.22.0
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/cloudentity/acp-client-go v0.0.0-20240417080945-86a36fac2551
-	github.com/go-json-experiment/json v0.0.0-20231102232822-2e55bd4e08b0
 	github.com/go-openapi/runtime v0.27.0
 	github.com/go-openapi/strfmt v0.22.0
 	github.com/goccy/go-yaml v1.11.2
@@ -27,6 +28,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/go-json-experiment/json v0.0.0-20240524174822-2d9f40f7385b // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.22.2 // indirect
