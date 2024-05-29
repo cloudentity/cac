@@ -12,7 +12,6 @@ import (
 
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
-	"github.com/cloudentity/cac/internal/cac/config"
 	"github.com/cloudentity/cac/internal/cac/diff"
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
@@ -600,11 +599,7 @@ system: false`, string(bts))
     
     for _, tc := range tcs {
         t.Run(tc.desc, func(t *testing.T) {
-            _, err := config.InitConfig("")
-
-            require.NoError(t, err)
-
-            err = logging.InitLogging(&logging.Configuration{
+            err := logging.InitLogging(&logging.Configuration{
                 Level: "debug",
             })
 
