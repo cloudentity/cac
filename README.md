@@ -155,16 +155,19 @@ Usage:
   cac push [flags]
 
 Flags:
-      --dry-run            Write files to disk instead of pushing to server
-  -h, --help               help for push
-      --method string      One of patch (merges remote with your config before applying), import (replaces remote with your config)
-      --mode string        One of ignore, fail, update (default "update")
-      --out string         Dry execution output. It can be a file, directory or '-' for stdout (default "-")
-      --workspace string   Workspace to load
+      --dry-run          Write files to disk instead of pushing to server
+      --filter strings   Push only selected resources
+  -h, --help             help for push
+      --method string    One of patch (merges remote with your config before applying), import (replaces remote with your config)
+      --mode string      One of ignore, fail, update (default "update")
+      --no-validate      Temporary workaround to skip local validation, which in some cases does not validate a valid config
+      --out string       Dry execution output. It can be a file, directory or '-' for stdout (default "-")
 
 Global Flags:
-      --config string    Path to source configuration file
-      --profile string   Configuration profile
+      --config string      Path to source configuration file
+      --profile string     Configuration profile
+      --tenant             Tenant configuration
+      --workspace string   Workspace configuration
 ```
 
 #### Push configuration from multiple directories
