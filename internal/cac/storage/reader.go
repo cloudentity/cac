@@ -1,12 +1,13 @@
 package storage
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/cloudentity/cac/internal/cac/templates"
 	ccyaml "github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
-	"os"
-	"path/filepath"
 )
 
 type ReadFileOpts struct {
@@ -28,7 +29,7 @@ func readFile(path string, opts ...ReadFileOpt) (map[string]any, error) {
 	if filepath.Ext(path) == "" {
 		path += ".yaml"
 	}
-
+	
 	slog.Debug("reading file", "path", path)
 
 	if bts, err = templates.New(path).Render(); err != nil {
@@ -42,7 +43,7 @@ func readFile(path string, opts ...ReadFileOpt) (map[string]any, error) {
 
 	slog.Debug("read template", "path", path, "data", bts)
 
-	// using goccy/go-yaml instead of sigs.k8s.io/yaml because it is better at handling multiline strings
+	
 	if err = ccyaml.Unmarshal(bts, &out); err != nil {
 		return out, errors.Wrapf(err, "failed to unmarshal template %s", path)
 	}
