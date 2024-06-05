@@ -9,6 +9,8 @@ github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3d
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/cloudentity/acp-client-go v0.0.0-20240417080945-86a36fac2551 h1:XoE1lxsNirhI8X6w1uKdAKtgcXbGOZYUs2aMLn0ErbI=
 github.com/cloudentity/acp-client-go v0.0.0-20240417080945-86a36fac2551/go.mod h1:dTHIsfs5YtDOH2CgeoHFlhfnnU1X+ohn+TIU30WlWQQ=
+github.com/corvus-ch/zbase32 v1.0.0 h1:pDV0qZ1g+HYA8P0PbULsgUg/tZue1FIjsZ7r7h4nZeU=
+github.com/corvus-ch/zbase32 v1.0.0/go.mod h1:A7KLRecF1tysURyoqiJBvMJFmt/ccqkRdDTLjlQeVsU=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
