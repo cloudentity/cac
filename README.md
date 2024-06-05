@@ -229,8 +229,10 @@ Templates are used to generate configuration files. They are using [Go template 
 
 We use [Sprig](http://masterminds.github.io/sprig/) library to extend Go template language with additional functions and also provide several custom functions.
 
-| Function | Description                                               |
-|---------:|:----------------------------------------------------------|
-|  include | Includes a template file                                  |
-|      env | Reads an environment variable, and fails if it is not set |
-|  nindent | prefixes text with \|\-\n and pads it with n spaces       |
+| Function | Description                                                        |
+|---------:|:-------------------------------------------------------------------|
+|  include | Includes a template file                                           |
+|      env | Reads an environment variable, and fails if it is not set          |
+|  nindent | prefixes text with \|\-\n and pads it with n spaces                |
+|  zbase32 | encodes input as zbase32 string                                    |
+|  apiID   | accepts api's serviceID, method and path and encodes it as zbase32 |
