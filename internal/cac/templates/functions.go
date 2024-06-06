@@ -1,12 +1,15 @@
 package templates
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	zb32 "github.com/corvus-ch/zbase32"
+	"github.com/pkg/errors"
 
 	"github.com/Masterminds/sprig/v3"
 )
@@ -16,6 +19,8 @@ func functions(t *Template) template.FuncMap {
 	funcMap["include"] = include(t)
 	funcMap["env"] = env
 	funcMap["nindent"] = nindent
+	funcMap["zbase32"] = zbase32
+	funcMap["apiID"] = apiID
 	return funcMap
 }
 
@@ -58,4 +63,13 @@ func env(key string) (any, error) {
 func nindent(spaces int, v string) string {
 	pad := strings.Repeat(" ", spaces)
 	return "|-\n" + pad + strings.Replace(v, "\n", "\n"+pad, -1)
+}
+
+
+func zbase32(input string) string {
+	return zb32.StdEncoding.EncodeToString([]byte(input))
+}
+
+func apiID(serviceID string, method string, path string) string {
+	return zbase32(fmt.Sprintf("%s_%s_%s", serviceID, method, path))
 }

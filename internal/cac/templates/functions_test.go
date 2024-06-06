@@ -74,6 +74,28 @@ func TestFunctions(t *testing.T) {
 			template: `{{ include "/../../../examples/e2e/vars.yaml" }}`,
 			expected: `var1: value1`,
 		},
+		{
+			name:     "zbase32 encode",
+			path:     filepath.Join(dir, "test.yaml"),
+			template: `field: {{ zbase32 "something" }}`,
+			expected: `field: qpzs43mwpbwsh3a`,
+		},
+		{
+			name:     "generate apiID",
+			path:     filepath.Join(dir, "test.yaml"),
+			template: `{{ apiID "service" "POST" "/api/test" }}:
+	api_type: rest
+	method: GET
+	path: /api/test
+	policy_id: some-policy
+	position: 21`,
+			expected: `qp1zr7ujcp1i6wnxkpkf6m5bqbw167dfqp4y:
+	api_type: rest
+	method: GET
+	path: /api/test
+	policy_id: some-policy
+	position: 21`,
+		},
 	}
 
 	for _, tc := range tcs {
