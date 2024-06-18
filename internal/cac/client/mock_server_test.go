@@ -14,7 +14,7 @@ import (
 func CreateMockServer(t *testing.T) *httptest.Server {
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 
-		if req.URL.Path == "/demo/system/.well-known/openid-configuration" {
+		if req.URL.Path == "/postmance/system/.well-known/openid-configuration" {
 			js := []byte(`{
 "issuer": "https://demo.eu.authz.cloudentity.io/demo/system",
 "authorization_endpoint": "https://postmance.eu.authz.cloudentity.io/demo/system/oauth2/auth",
@@ -27,7 +27,7 @@ func CreateMockServer(t *testing.T) *httptest.Server {
 			return
 		}
 
-		if req.URL.Path == "/demo/system/oauth2/token" {
+		if req.URL.Path == "/postmance/system/oauth2/token" {
 			js := []byte(`{
 "token_type": "Bearer",
 "scope": "openid",
@@ -42,7 +42,7 @@ func CreateMockServer(t *testing.T) *httptest.Server {
 			return
 		}
 
-		if req.URL.Path == "/api/hub/demo//promote/config" {
+		if req.URL.Path == "/api/hub/postmance/promote/config" {
 			res.Header().Set("Content-Type", "application/json")
 			res.WriteHeader(http.StatusOK)
 			js, err := json.Marshal(models.TreeTenant{
