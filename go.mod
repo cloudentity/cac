@@ -6,8 +6,9 @@ toolchain go1.22.0
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/cloudentity/acp-client-go v0.0.0-20240417080945-86a36fac2551
-	github.com/go-openapi/runtime v0.27.0
+	github.com/cloudentity/acp-client-go v0.0.0-20240618142147-15447bea0396
+	github.com/corvus-ch/zbase32 v1.0.0
+	github.com/go-json-experiment/json v0.0.0-20240524174822-2d9f40f7385b
 	github.com/go-openapi/strfmt v0.22.0
 	github.com/goccy/go-yaml v1.11.2
 	github.com/google/go-cmp v0.6.0
@@ -18,18 +19,15 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
-	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/corvus-ch/zbase32 v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/go-json-experiment/json v0.0.0-20240524174822-2d9f40f7385b // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.22.2 // indirect
@@ -37,6 +35,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/jsonreference v0.20.4 // indirect
 	github.com/go-openapi/loads v0.21.5 // indirect
+	github.com/go-openapi/runtime v0.27.0 // indirect
 	github.com/go-openapi/spec v0.20.14 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect
 	github.com/go-openapi/validate v0.22.6 // indirect
@@ -78,6 +77,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/corvus-ch/zbase32.v1 v1.0.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

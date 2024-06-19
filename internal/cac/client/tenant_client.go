@@ -8,7 +8,6 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/go-openapi/runtime"
 )
 
 type TenantClient struct {
@@ -97,9 +96,7 @@ func (t *TenantClient) Patch(ctx context.Context, mode string, data models.Rfc73
 	if _, err = t.acp.Hub.TenantConfiguration.PatchTenantConfigRfc7396(tenant_configuration.NewPatchTenantConfigRfc7396ParamsWithContext(ctx).
 		WithTid(t.acp.Config.TenantID).
 		WithMode(&mode).
-		WithPatch(data), nil, func(operation *runtime.ClientOperation) {
-		operation.PathPattern = "/promote/config-rfc7396"
-	},
+		WithPatch(data), nil,
 	); err != nil {
 		return err
 	}

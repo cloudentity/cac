@@ -9,7 +9,6 @@ import (
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
-	"github.com/go-openapi/runtime"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -69,6 +68,7 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc739
 			NewExportWorkspaceConfigParams().
 			WithContext(ctx).
 			WithWithCredentials(&options.Secrets).
+			WithTid(c.acp.Config.TenantID).
 			WithWid(workspace), nil); err != nil {
 		return nil, err
 	}
@@ -125,10 +125,9 @@ func (c *Client) Patch(ctx context.Context, workspace string, mode string, data 
 			NewPatchWorkspaceConfigRfc7396Params().
 			WithContext(ctx).
 			WithWid(workspace).
+			WithTid(c.acp.Config.TenantID).
 			WithMode(&mode).
-			WithPatch(data), nil, func(operation *runtime.ClientOperation) {
-			operation.PathPattern = "/workspaces/{wid}/promote/config-rfc7396"
-		}); err != nil {
+			WithPatch(data), nil); err != nil {
 		return err
 	}
 
@@ -150,10 +149,9 @@ func (c *Client) Import(ctx context.Context, workspace string, mode string, data
 			NewImportWorkspaceConfigParams().
 			WithContext(ctx).
 			WithWid(workspace).
+			WithTid(c.acp.Config.TenantID).
 			WithMode(&mode).
-			WithConfig(out), nil, func(operation *runtime.ClientOperation) {
-			operation.PathPattern = "/workspaces/{wid}/promote/config"
-		}); err != nil {
+			WithConfig(out), nil); err != nil {
 		return err
 	}
 

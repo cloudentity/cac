@@ -18,6 +18,7 @@ func TestClient(t *testing.T) {
 		_, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "-T1siRsUvmE58hB-2I_fWQZW1lLpk_gK76ZziR8Y9QY",
 			},
@@ -32,6 +33,7 @@ func TestClient(t *testing.T) {
 		_, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "-T1siRsUvmE58hB-2I_fWQZW1lLpk_gK76ZziR8Y9QY",
 			},
@@ -47,6 +49,7 @@ func TestClient(t *testing.T) {
 		c, err := client.InitClient(&client.Configuration{
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "invalid_secret",
 			},
@@ -61,12 +64,13 @@ func TestClient(t *testing.T) {
 
 	t.Run("client pull configuration without filters", func(t *testing.T) {
 		testServer := CreateMockServer(t)
-		issuer, _ := url.Parse(fmt.Sprintf("%s/demo/system", testServer.URL))
+		issuer, _ := url.Parse(fmt.Sprintf("%s/postmance/system", testServer.URL))
 
 		c, err := client.InitClient(&client.Configuration{
 			Insecure: true,
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "valid_secret",
 			},
@@ -88,12 +92,13 @@ func TestClient(t *testing.T) {
 
 	t.Run("client pull configuration and filter", func(t *testing.T) {
 		testServer := CreateMockServer(t)
-		issuer, _ := url.Parse(fmt.Sprintf("%s/demo/system", testServer.URL))
+		issuer, _ := url.Parse(fmt.Sprintf("%s/postmance/system", testServer.URL))
 
 		c, err := client.InitClient(&client.Configuration{
 			Insecure: true,
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "valid_secret",
 			},
@@ -115,12 +120,13 @@ func TestClient(t *testing.T) {
 
 	t.Run("client pull tenant configuration", func(t *testing.T) {
 		testServer := CreateMockServer(t)
-		issuer, _ := url.Parse(fmt.Sprintf("%s/demo/system", testServer.URL))
+		issuer, _ := url.Parse(fmt.Sprintf("%s/postmance/system", testServer.URL))
 
 		c, err := client.InitClient(&client.Configuration{
 			Insecure: true,
 			Config: acpclient.Config{
 				IssuerURL:    issuer,
+				TenantID:    "postmance",
 				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
 				ClientSecret: "valid_secret",
 			},
