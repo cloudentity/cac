@@ -195,7 +195,7 @@ updated_at: 0001-01-01T00:00:00.000Z
             st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
                 DirPath: []string{t.TempDir(), t.TempDir()},
             }, storage.InitTenantStorage)
-q
+
             require.NoError(t, err)
 
             patchData, err := utils.FromModelToPatch(tc.data)
