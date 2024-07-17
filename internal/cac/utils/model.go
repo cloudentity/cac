@@ -85,7 +85,9 @@ func FilterPatch(patch models.Rfc7396PatchOperation, filters []string) (models.R
 			filter = mapped
 		}
 
-		newPatch[filter] = patch[filter]
+		if _, ok := patch[filter]; ok {
+			newPatch[filter] = patch[filter]
+		}
 	}
 
 	return newPatch, nil
