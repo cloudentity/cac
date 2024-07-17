@@ -115,10 +115,6 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
         return nil, err
     }
 
-    if err = readFilesToMap(tenant, "themes", filepath.Join(path, "themes")); err != nil {
-        return nil, err
-    }
-
     if themeDirs, err = listDirsInPath(filepath.Join(path, "themes")); err != nil {
         return nil, err
     }
@@ -144,7 +140,7 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
             templatesConfig map[string]any
         )
 
-        if templatesConfig, err = readFiles(filepath.Join(path, "themes", normalize(theme.Name), "templates")); err != nil {
+        if templatesConfig, err = readFiles(filepath.Join(path, "themes", dir, "templates")); err != nil {
             return nil, err
         }
 
