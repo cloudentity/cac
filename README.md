@@ -20,16 +20,19 @@ client:
   issuer_url: https://postmance.eu.authz.cloudentity.io/postmance/system # authz issuer url
   client_id: fb346c287c4d4e378cbae39aa0c3fe52 # system workspace client id
   client_secret: invalid_secret
+  tenant_id: postmance # required tenant id 
   scopes:
     - manage_configuration # scope required to read / write configuration 
+    - read_configuration # alternative scope that can be used only to read configuration
 storage:
   dir_path: "/tmp/e2e-data" # path to local configuration
 
 profiles: # an optional map of profiles available for use, especially helpful when you want to compare multiple configurations
   stage: # each profile support same configuration as root (aka default profile)
     client:
-      issuer_url: https://janus.eu.authz.cloudentity.io/janus/system
+      issuer_url: https://postmance-stage.eu.authz.cloudentity.io/postmance-stage/system
       client_id: fb346c287c4d4e378cbae39aa0cxxxxx
+      tenant_id: postmance-stage
       client_secret: invalid_secret
     storage:
       dir_path: "/tmp/other"
