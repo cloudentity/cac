@@ -1,5 +1,5 @@
 logging:
-  level: debug
+  level: info
   format: text
 client:
   issuer_url: https://postmance.eu.authz.cloudentity.io/postmance/system
