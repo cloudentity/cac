@@ -21,6 +21,7 @@ client:
   client_id: fb346c287c4d4e378cbae39aa0c3fe52 # system workspace client id
   client_secret: invalid_secret
   tenant_id: postmance # required tenant id 
+  # vanity_domain_type: only required if vanity domain is used, can be one of: tenant, server
   scopes:
     - manage_configuration # scope required to read / write configuration 
     - read_configuration # alternative scope that can be used only to read configuration
