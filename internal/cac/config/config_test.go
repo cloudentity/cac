@@ -23,7 +23,7 @@ func TestReadingConfiguration(t *testing.T) {
 		require.Equal(t, expectedIssuer, conf.Client.IssuerURL)
 		require.Contains(t, conf.Client.Scopes, "manage_configuration")
 		require.NotNil(t, conf.Logging)
-		require.Equal(t, "debug", conf.Logging.Level)
+		require.Equal(t, "info", conf.Logging.Level)
 		require.NotNil(t, conf.Storage)
 		require.NotEmpty(t, conf.Client.Scopes)
 		require.NotEmpty(t, conf.Logging.Level)
