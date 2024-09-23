@@ -10,12 +10,19 @@ This repository contains a CLI tool for managing Cloudentity configuration.
 go install github.com/cloudentity/cac@latest
 ```
 
+## Getting started
+
+1. Create a `config.yaml` file like the one showcased in the [Configuration section](#configuration)
+2. Call `cac --config config.yaml pull --tenant` 
+3. By default files with pulled configuration will be created in the `data` directory in you current working dir 
+4. See more details about `pull` and other commands [here](#commands)
+
 ## Configuration
 
 ```yaml
 logging: # logger config
-  level: debug # one of: debug, info, warn, error
-  format: text # one of: text, json
+  level: info # one of: debug, info, warn, error; default: info
+  format: text # one of: text, json; default: text
 client:
   issuer_url: https://postmance.eu.authz.cloudentity.io/postmance/system # authz issuer url
   client_id: fb346c287c4d4e378cbae39aa0c3fe52 # system workspace client id
@@ -26,7 +33,7 @@ client:
     - manage_configuration # scope required to read / write configuration 
     - read_configuration # alternative scope that can be used only to read configuration
 storage:
-  dir_path: "/tmp/e2e-data" # path to local configuration
+  dir_path: "/tmp/e2e-data" # path to local configuration; default: "data"
 
 profiles: # an optional map of profiles available for use, especially helpful when you want to compare multiple configurations
   stage: # each profile support same configuration as root (aka default profile)
@@ -70,7 +77,7 @@ Use "cac [command] --help" for more information about a command.
 
 ### Pull
 
-Pull configuration from Cloudentity and save it to a directory structure.
+Pull configuration from Cloudentity and save it to a directory configured by `storage.dir_path`.
 
 ```bash
 cac pull --help
