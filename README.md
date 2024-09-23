@@ -110,51 +110,51 @@ cac pull --config examples/e2e/config.yaml --workspace cdr_australia-demo-c67evw
 The sample output in the `storage.dir_path` should look like: 
 
 ```
-./
-└── ./workspaces
-    └── ./workspaces/cdr_australia-demo-c67evw7mj4
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/bank2.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/bank.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/Consent_Page_Bank_Client.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/Data_Holder.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/Financroo.yaml
-        │   └── ./workspaces/cdr_australia-demo-c67evw7mj4/clients/xxx.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/idps
-        │   └── ./workspaces/cdr_australia-demo-c67evw7mj4/idps/test.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_API.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_DCR.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Developer.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Machine.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_User.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/MFA_User.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.rego
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.rego
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_API.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_User.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_API.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_User.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_API.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_User.yaml
-        │   └── ./workspaces/cdr_australia-demo-c67evw7mj4/policies/Unlock_DCR.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/scripts
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.js
-        │   └── ./workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/services
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/services/CDR_Australia.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/services/OAuth2.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/services/Profile.yaml
-        │   ├── ./workspaces/cdr_australia-demo-c67evw7mj4/services/Transient_One-Time_Passwords.yaml
-        │   └── ./workspaces/cdr_australia-demo-c67evw7mj4/services/User_Privacy_&_Consent.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/claims.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/consent.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/policy_execution_points.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/scopes.yaml
-        ├── ./workspaces/cdr_australia-demo-c67evw7mj4/script_execution_points.yaml
-        └── ./workspaces/cdr_australia-demo-c67evw7mj4/server.yaml
+./data
+└── ./data/workspaces
+    └── ./data/workspaces/cdr_australia-demo-c67evw7mj4
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Consent_Page_Bank_Client.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Data_Holder.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Financroo.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/xxx.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/idps
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/idps/test.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_DCR.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Developer.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Machine.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/MFA_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.rego
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.rego
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_User.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Unlock_DCR.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.js
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/CDR_Australia.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/OAuth2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/Profile.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/Transient_One-Time_Passwords.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/User_Privacy_&_Consent.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/claims.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/consent.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policy_execution_points.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scopes.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/script_execution_points.yaml
+        └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/server.yaml
 ```
 
 ### Push
