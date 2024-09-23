@@ -13,9 +13,11 @@ go install github.com/cloudentity/cac@latest
 ## Getting started
 
 1. Create a `config.yaml` file like the one showcased in the [Configuration section](#configuration)
-2. Call `cac --config config.yaml pull --tenant` 
+2. Call `cac --config config.yaml pull --workspace default` 
 3. By default files with pulled configuration will be created in the `data` directory in you current working dir 
-4. See more details about `pull` and other commands [here](#commands)
+4. Modify config in `data` 
+5. Apply changes to your remote config using `cac --config config.yaml --workspace default --method patch`
+6. See more details about `pull` and other commands [here](#commands)
 
 ## Configuration
 
@@ -33,7 +35,7 @@ client:
     - manage_configuration # scope required to read / write configuration 
     - read_configuration # alternative scope that can be used only to read configuration
 storage:
-  dir_path: "/tmp/e2e-data" # path to local configuration; default: "data"
+  dir_path: "/tmp/data" # path to local configuration; default: "data"
 
 profiles: # an optional map of profiles available for use, especially helpful when you want to compare multiple configurations
   stage: # each profile support same configuration as root (aka default profile)
