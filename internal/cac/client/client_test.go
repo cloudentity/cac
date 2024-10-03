@@ -146,4 +146,35 @@ func TestClient(t *testing.T) {
 		require.Len(t, data["mfa_methods"], 1)
 		require.Equal(t, "demo tenant", data["name"])
 	})
+
+	t.Run("client pull tenant configuration with credentials", func(t *testing.T) {
+		testServer := CreateMockServer(t)
+		issuer, _ := url.Parse(fmt.Sprintf("%s/postmance/system", testServer.URL))
+
+		c, err := client.InitClient(&client.Configuration{
+			Insecure: true,
+			Config: acpclient.Config{
+				IssuerURL:    issuer,
+				TenantID:    "postmance",
+				ClientID:     "fb346c287c4d4e378cbae39aa0c3fe52",
+				ClientSecret: "valid_secret",
+			},
+		})
+		require.NoError(t, err)
+
+		source := c.Tenant()
+
+		data, err := source.Read(
+			context.Background(),
+			api.WithSecrets(false),
+		)
+
+		require.NoError(t, err)
+
+		require.Len(t, data["servers"], 1)
+		require.Len(t, data["mfa_methods"], 1)
+		require.Equal(t, "demo tenant", data["name"])
+		secret := data["servers"].(map[string]interface{})["server1"].(map[string]interface{})["clients"].(map[string]interface{})["cid1"].(map[string]interface{})["client_secret"]
+		require.Equal(t, "secret", secret)
+	})
 }

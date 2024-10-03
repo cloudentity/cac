@@ -28,7 +28,7 @@ var (
 				With("tenant", rootConfig.Tenant).
 				With("filters", pullConfig.Filters).
 				With("config", rootConfig.ConfigPath).
-				Info("Pulling workspace configuration")
+				Info("Pulling configuration")
 
 			if data, err = app.Client.Read(
 				cmd.Context(),
