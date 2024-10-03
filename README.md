@@ -10,26 +10,39 @@ This repository contains a CLI tool for managing Cloudentity configuration.
 go install github.com/cloudentity/cac@latest
 ```
 
+## Getting started
+
+1. Create a `config.yaml` file like the one showcased in the [Configuration section](#configuration)
+2. Call `cac --config config.yaml pull --workspace default` 
+3. By default files with pulled configuration will be created in the `data` directory in you current working dir 
+4. Modify config in `data` 
+5. Apply changes to your remote config using `cac --config config.yaml --workspace default --method patch`
+6. See more details about `pull` and other commands [here](#commands)
+
 ## Configuration
 
 ```yaml
 logging: # logger config
-  level: debug # one of: debug, info, warn, error
-  format: text # one of: text, json
+  level: info # one of: debug, info, warn, error; default: info
+  format: text # one of: text, json; default: text
 client:
   issuer_url: https://postmance.eu.authz.cloudentity.io/postmance/system # authz issuer url
   client_id: fb346c287c4d4e378cbae39aa0c3fe52 # system workspace client id
   client_secret: invalid_secret
+  tenant_id: postmance # required tenant id 
+  # vanity_domain_type: only required if vanity domain is used, can be one of: tenant, server
   scopes:
     - manage_configuration # scope required to read / write configuration 
+    - read_configuration # alternative scope that can be used only to read configuration
 storage:
-  dir_path: "/tmp/e2e-data" # path to local configuration
+  dir_path: "/tmp/data" # path to local configuration; default: "data"
 
 profiles: # an optional map of profiles available for use, especially helpful when you want to compare multiple configurations
   stage: # each profile support same configuration as root (aka default profile)
     client:
-      issuer_url: https://janus.eu.authz.cloudentity.io/janus/system
+      issuer_url: https://postmance-stage.eu.authz.cloudentity.io/postmance-stage/system
       client_id: fb346c287c4d4e378cbae39aa0cxxxxx
+      tenant_id: postmance-stage
       client_secret: invalid_secret
     storage:
       dir_path: "/tmp/other"
@@ -66,7 +79,7 @@ Use "cac [command] --help" for more information about a command.
 
 ### Pull
 
-Pull configuration from Cloudentity and save it to a directory structure.
+Pull configuration from Cloudentity and save it to a directory configured by `storage.dir_path`.
 
 ```bash
 cac pull --help
@@ -94,52 +107,54 @@ cac pull --config examples/e2e/config.yaml --workspace cdr_australia-demo-c67evw
 
 #### Sample output
 
+The sample output in the `storage.dir_path` should look like: 
+
 ```
-/tmp/e2e-data
-└── /tmp/e2e-data/workspaces
-    └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank2.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Consent_Page_Bank_Client.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Data_Holder.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Financroo.yaml
-        │   └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/clients/xxx.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/idps
-        │   └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/idps/test.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_API.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_DCR.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Developer.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Machine.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_User.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/MFA_User.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.rego
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.rego
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_API.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_User.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_API.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_User.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_API.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_User.yaml
-        │   └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Unlock_DCR.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/scripts
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.js
-        │   └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services/CDR_Australia.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services/OAuth2.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services/Profile.yaml
-        │   ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services/Transient_One-Time_Passwords.yaml
-        │   └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/services/User_Privacy_&_Consent.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/claims.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/consent.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/policy_execution_points.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/scopes.yaml
-        ├── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/script_execution_points.yaml
-        └── /tmp/e2e-data/workspaces/cdr_australia-demo-c67evw7mj4/server.yaml
+./data
+└── ./data/workspaces
+    └── ./data/workspaces/cdr_australia-demo-c67evw7mj4
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/bank.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Consent_Page_Bank_Client.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Data_Holder.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/Financroo.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/clients/xxx.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/idps
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/idps/test.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_DCR.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Developer.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_Machine.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Block_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/MFA_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.rego
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.rego
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/mtls.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-1_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-2_User.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_API.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/NIST-AAL-3_User.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policies/Unlock_DCR.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.js
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scripts/debug.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/CDR_Australia.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/OAuth2.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/Profile.yaml
+        │   ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/Transient_One-Time_Passwords.yaml
+        │   └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/services/User_Privacy_&_Consent.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/claims.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/consent.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/policy_execution_points.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/scopes.yaml
+        ├── ./data/workspaces/cdr_australia-demo-c67evw7mj4/script_execution_points.yaml
+        └── ./data/workspaces/cdr_australia-demo-c67evw7mj4/server.yaml
 ```
 
 ### Push
@@ -213,9 +228,10 @@ cac diff --config examples/e2e/config-postmance.yaml --source local --target rem
 
 2024/01/29 12:53:37 INFO Comparing workspace configuration workspace=cdr_australia-demo-c67evw7mj4 config=examples/e2e/config-postmance.yaml profile=default source=local target=remote
 time=2024-01-29T12:53:38.492+01:00 level=INFO msg="Initiated application"
-time=2024-01-29T12:53:38.643+01:00 level=INFO msg="Comparing configurations" source="storage: [/tmp/e2e-data]" target="client: https://postmance.eu.authz.cloudentity.io/postmance/system"
+time=2024-01-29T12:53:38.643+01:00 level=INFO msg="Comparing configurations" source="storage: [data]" target="client: https://postmance.eu.authz.cloudentity.io/postmance/system"
 map[string]any{
 ... // 6 identical entries
+
 "backchannel_user_code_parameter_supported": bool(false),
 "cdr":                                       map[string]any{"adr_validation_enabled": bool(false), "dont_cache_trust_anchor_data": bool(false), "industry": string("banking"), "register_api_version": string("1.20.0"), ...},
 - 	"ciba_authentication_service":               map[string]any{"type": string("mock")},
