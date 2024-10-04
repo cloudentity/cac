@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"log/slog"
+	"os"
+
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/pkg/errors"
-	"os"
 )
 
 type DryStorage struct {
@@ -20,6 +22,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	)
 
 	if out == "-" {
+		slog.Debug("Writing to stdout")
 		delegatedWriter = stdWriter
 	} else if out != "" {
 		var (
@@ -38,6 +41,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 			}
 
 			if info.IsDir() {
+				slog.Debug("Writing to directory %s", "directory", out)
 				dryStorage := constr(&Configuration{
 					DirPath: out,
 				})
@@ -47,6 +51,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 		}
 
 		if delegatedWriter == nil {
+			slog.Debug("Writing to file %s", "file", out)
 			delegatedWriter = flatFileWriter(out)
 		}
 	} else {

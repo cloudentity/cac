@@ -63,6 +63,8 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc739
 		return nil, errors.New("workspace is required to read using server client")
 	}
 
+	slog.Info("Pulling configuration", "workspace", workspace, "options", options)
+
 	if ok, err = c.acp.Hub.WorkspaceConfiguration.
 		ExportWorkspaceConfig(workspace_configuration.
 			NewExportWorkspaceConfigParams().

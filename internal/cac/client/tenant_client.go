@@ -3,11 +3,13 @@ package client
 import (
 	"context"
 	"fmt"
+
 	acpclient "github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/acp-client-go/clients/hub/client/tenant_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
+	"golang.org/x/exp/slog"
 )
 
 type TenantClient struct {
@@ -26,8 +28,11 @@ func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (models.
 		opt(options)
 	}
 
+	slog.Info("Pulling tenant configuration", "options", options)
+
 	if ok, err = t.acp.Hub.TenantConfiguration.ExportTenantConfig(tenant_configuration.NewExportTenantConfigParamsWithContext(ctx).
-		WithTid(t.acp.Config.TenantID), nil,
+		WithTid(t.acp.Config.TenantID).
+		WithWithCredentials(&options.Secrets), nil,
 	); err != nil {
 		return nil, err
 	}

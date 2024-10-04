@@ -396,9 +396,7 @@ url: https://example.com`, string(bts))
                         Definition: `
 package acp.authz
 
-default allow = false
-
-`,
+default allow = false`,
                         Language:   "rego",
                         PolicyName: "Some Rego Policy",
                         Type:       "api",
@@ -422,9 +420,7 @@ validators: []
                     require.Equal(t, `
 package acp.authz
 
-default allow = false
-
-`, string(bts))
+default allow = false`, string(bts))
                 }
             },
         },
