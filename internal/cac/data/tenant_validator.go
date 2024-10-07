@@ -19,6 +19,10 @@ func (sv *TenantValidator) Validate(data *models.Rfc7396PatchOperation) error {
 		return err
 	}
 
+	for _, server := range tenant.Servers {
+		allowToDeleteScriptExecutionPoints(&server)
+	}
+
 	if err = tenant.Validate(strfmt.Default); err != nil {
 		return err
 	}

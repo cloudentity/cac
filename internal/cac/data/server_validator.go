@@ -19,6 +19,8 @@ func (sv *ServerValidator) Validate(data *models.Rfc7396PatchOperation) error {
 		return err
 	}
 
+	allowToDeleteScriptExecutionPoints(serv)
+
 	if err = serv.Validate(strfmt.Default); err != nil {
 		return err
 	}
