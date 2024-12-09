@@ -6,7 +6,7 @@ toolchain go1.22.0
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/cloudentity/acp-client-go v0.0.0-20240618142147-15447bea0396
+	github.com/cloudentity/acp-client-go v0.0.0-20241209151610-14608290c460
 	github.com/corvus-ch/zbase32 v1.0.0
 	github.com/go-json-experiment/json v0.0.0-20240524174822-2d9f40f7385b
 	github.com/go-openapi/strfmt v0.22.0

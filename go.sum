@@ -7,8 +7,8 @@ github.com/Masterminds/sprig/v3 v3.2.3 h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj
 github.com/Masterminds/sprig/v3 v3.2.3/go.mod h1:rXcFaZ2zZbLRJv/xSysmlgIM1u11eBaRMhvYXJNkGuM=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
-github.com/cloudentity/acp-client-go v0.0.0-20240618142147-15447bea0396 h1:nWtlxPLa9os1mp4ASp3R9a+hcQo6hJWv15kYqNXXGyA=
-github.com/cloudentity/acp-client-go v0.0.0-20240618142147-15447bea0396/go.mod h1:dTHIsfs5YtDOH2CgeoHFlhfnnU1X+ohn+TIU30WlWQQ=
+github.com/cloudentity/acp-client-go v0.0.0-20241209151610-14608290c460 h1:ViagTxoPaC+H0R1QrjnTlXGuqR9PT4VZAI7o8v3c2KU=
+github.com/cloudentity/acp-client-go v0.0.0-20241209151610-14608290c460/go.mod h1:dTHIsfs5YtDOH2CgeoHFlhfnnU1X+ohn+TIU30WlWQQ=
 github.com/corvus-ch/zbase32 v1.0.0 h1:pDV0qZ1g+HYA8P0PbULsgUg/tZue1FIjsZ7r7h4nZeU=
 github.com/corvus-ch/zbase32 v1.0.0/go.mod h1:A7KLRecF1tysURyoqiJBvMJFmt/ccqkRdDTLjlQeVsU=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -55,8 +55,6 @@ github.com/go-playground/universal-translator v0.17.0 h1:icxd5fm+REJzpZx7ZfpaD87
 github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+Scu5vgOQjsIJAF8j9muTVoKLVtA=
 github.com/go-playground/validator/v10 v10.4.1 h1:pH2c5ADXtd66mxoE0Zm9SUhxE20r7aM3F26W0hOn+GE=
 github.com/go-playground/validator/v10 v10.4.1/go.mod h1:nlOn6nFhuKACm19sB/8EGNn9GlaMV7XkbRSipzJ0Ii4=
-github.com/goccy/go-yaml v1.11.2 h1:joq77SxuyIs9zzxEjgyLBugMQ9NEgTWxXfz2wVqwAaQ=
-github.com/goccy/go-yaml v1.11.2/go.mod h1:wKnAMd44+9JAAnGQpWVEgBzGt3YuTaQ4uXoHvE4m7WU=
 github.com/goccy/go-yaml v1.12.0 h1:/1WHjnMsI1dlIBQutrvSMGZRQufVO3asrHfTwfACoPM=
 github.com/goccy/go-yaml v1.12.0/go.mod h1:wKnAMd44+9JAAnGQpWVEgBzGt3YuTaQ4uXoHvE4m7WU=
 github.com/golang-jwt/jwt/v4 v4.5.0 h1:7cYmW1XlMY7h7ii7UhUyChSgS5wUJEnm9uZVTGqOWzg=

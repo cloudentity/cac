@@ -150,6 +150,12 @@ func (s *ServerStorage) Write(ctx context.Context, input models.Rfc7396PatchOper
 		return err
 	}
 
+	if err = writeFiles(data.Secrets,
+		filepath.Join(workspacePath, "secrets"),
+		func(id string, it models.TreeSecret) string { return id }); err != nil {
+		return err
+	}
+
 	slog.Info("Workspace configuration successfully stored", "workspace", workspace, "path", workspacePath)
 
 	return nil
@@ -254,6 +260,10 @@ func (s *ServerStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models
 	}
 
 	if err = readFilesToMap(server, "policies", filepath.Join(path, "policies")); err != nil {
+		return nil, err
+	}
+
+	if err = readFilesToMap(server, "secrets", filepath.Join(path, "secrets")); err != nil {
 		return nil, err
 	}
 

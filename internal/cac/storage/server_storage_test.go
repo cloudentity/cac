@@ -41,7 +41,9 @@ func TestStorage(t *testing.T) {
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 require.YAMLEq(t, `access_token_ttl: 10m0s
+authentication_mechanisms: []
 authorization_code_ttl: 0s
+scope_claim_formats: []
 backchannel_token_delivery_modes_supported: []
 backchannel_user_code_parameter_supported: false
 cookie_max_age: 0s
@@ -93,6 +95,7 @@ client_id_issued_at: 0
 client_name: Demo Portal
 client_secret_expires_at: 0
 created_at: 0001-01-01T00:00:00.000Z
+default_acr_values: []
 dpop_bound_access_tokens: false
 dynamically_registered: false
 grant_types: []
@@ -232,6 +235,7 @@ identifier_case_insensitive: false
 mfa_session_ttl: 0s
 name: Some Pool
 public_registration_allowed: false
+second_factor_threshold: 0
 system: false`, string(bts))
             },
         },
@@ -587,8 +591,28 @@ identifier_case_insensitive: false
 mfa_session_ttl: 0s
 name: Some Pool
 public_registration_allowed: false
+second_factor_threshold: 0
 system: false`, string(bts))
                 }
+            },
+        },
+        {
+            desc: "secrets",
+            data: &models.TreeServer{
+                Secrets: models.TreeSecrets{
+                    "Some_secret": models.TreeSecret{
+                        CreatedAt: dateTime,
+                        Secret: "test",
+                    },
+                },
+            },
+            files: []string{
+                "workspaces/demo/secrets/Some_secret.yaml",
+            },
+            assert: func(t *testing.T, path string, bts []byte) {
+                    require.YAMLEq(t, `created_at: 2024-01-23T23:19:30.004+01:00
+id: Some_secret
+secret: test`, string(bts))
             },
         },
     }
