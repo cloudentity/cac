@@ -57,6 +57,7 @@ var secretFields = []string{
 	"servers.*jwks", // workspace jwks (when comparing tenant config)
 	"webhooks.*api_key",
 	"mfa_methods.*auth",
+	"secrets.*secret",
 }
 
 var volatileFields = []string{
