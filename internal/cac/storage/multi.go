@@ -3,10 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
-	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 )
 
@@ -50,26 +49,33 @@ var _ Storage = &MultiStorage{}
 var _ api.Source = &MultiStorage{}
 
 // Write for simplicity stores data in first storage only, it is responsibility of the user to move entities to other storages
-func (m *MultiStorage) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (m *MultiStorage) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+	slog.Debug("Writing data to multi storage")	
 	return m.Storages[0].Write(ctx, data, opts...)
 }
 
 // Read data from all storages and merge them
-func (m *MultiStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (m *MultiStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
 	var (
-		data = models.Rfc7396PatchOperation{}
+		data api.PatchInterface
 		err  error
 	)
 
+	slog.Debug("Reading data from multi storage")
+
 	for i := len(m.Storages) - 1; i >= 0; i-- {
-		var data2 models.Rfc7396PatchOperation
+		var data2 api.PatchInterface
 
 		if data2, err = m.Storages[i].Read(ctx, opts...); err != nil {
-			return data, errors.Wrap(err, "failed to read data from storage")
+			return nil, errors.Wrap(err, "failed to read data from storage")
 		}
 
-		if err = mergo.Merge(&data, data2, mergo.WithOverride); err != nil {
-			return data, errors.Wrap(err, "failed to merge data")
+		if data == nil {
+			data = data2
+		} else {
+			if err = data.Merge(data2); err != nil {
+				return nil, errors.Wrap(err, "failed to merge data")
+			}
 		}
 
 	}

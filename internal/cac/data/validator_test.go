@@ -3,6 +3,7 @@ package data_test
 import (
 	"testing"
 
+	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/data"
 	"github.com/stretchr/testify/require"
 
@@ -27,7 +28,10 @@ func TestServerValidator(t *testing.T) {
 			},
 		}
 
-		err := validator.Validate(&patch)
+		err := validator.Validate(&api.TenantPatch{
+			Data: patch,
+			Ext: &api.TenantExtensions{},
+		})
 		require.NoError(t, err)
 	})
 

@@ -85,9 +85,9 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		require.Len(t, data["clients"], 1)
-		require.Len(t, data["idps"], 1)
-		require.Equal(t, "demo workspace", data["name"])
+		require.Len(t, data.GetData()["clients"], 1)
+		require.Len(t, data.GetData()["idps"], 1)
+		require.Equal(t, "demo workspace", data.GetData()["name"])
 	})
 
 	t.Run("client pull configuration and filter", func(t *testing.T) {
@@ -114,8 +114,8 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		require.Len(t, data["clients"], 1)
-		require.Nil(t, data["idps"])
+		require.Len(t, data.GetData()["clients"], 1)
+		require.Nil(t, data.GetData()["idps"])
 	})
 
 	t.Run("client pull tenant configuration", func(t *testing.T) {
@@ -142,9 +142,9 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		require.Len(t, data["servers"], 1)
-		require.Len(t, data["mfa_methods"], 1)
-		require.Equal(t, "demo tenant", data["name"])
+		require.Len(t, data.GetData()["servers"], 1)
+		require.Len(t, data.GetData()["mfa_methods"], 1)
+		require.Equal(t, "demo tenant", data.GetData()["name"])
 	})
 
 	t.Run("client pull tenant configuration with credentials", func(t *testing.T) {
@@ -171,10 +171,10 @@ func TestClient(t *testing.T) {
 
 		require.NoError(t, err)
 
-		require.Len(t, data["servers"], 1)
-		require.Len(t, data["mfa_methods"], 1)
-		require.Equal(t, "demo tenant", data["name"])
-		secret := data["servers"].(map[string]interface{})["server1"].(map[string]interface{})["clients"].(map[string]interface{})["cid1"].(map[string]interface{})["client_secret"]
+		require.Len(t, data.GetData()["servers"], 1)
+		require.Len(t, data.GetData()["mfa_methods"], 1)
+		require.Equal(t, "demo tenant", data.GetData()["name"])
+		secret := data.GetData()["servers"].(map[string]interface{})["server1"].(map[string]interface{})["clients"].(map[string]interface{})["cid1"].(map[string]interface{})["client_secret"]
 		require.Equal(t, "secret", secret)
 	})
 }

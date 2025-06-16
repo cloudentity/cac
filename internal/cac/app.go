@@ -1,6 +1,8 @@
 package cac
 
 import (
+	"strings"
+
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/client"
 	"github.com/cloudentity/cac/internal/cac/config"
@@ -8,15 +10,14 @@ import (
 	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/storage"
 	"golang.org/x/exp/slog"
-	"strings"
 )
 
 type Application struct {
-	Config     *config.Configuration
-	RootConfig *config.RootConfiguration
-	Client     api.Source
-	Storage    storage.Storage
-	Validator  data.ValidatorApi
+	Config       *config.Configuration
+	RootConfig   *config.RootConfiguration
+	Client       api.Source
+	Storage      storage.Storage
+	Validator    data.ValidatorApi
 }
 
 func InitApp(configPath string, profile string, tenant bool) (app *Application, err error) {

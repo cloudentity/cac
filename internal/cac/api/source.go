@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"errors"
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 )
 
 type SourceType string
@@ -37,15 +36,10 @@ type Options struct {
 type SourceOpt func(*Options)
 
 type Source interface {
-	Read(ctx context.Context, opts ...SourceOpt) (models.Rfc7396PatchOperation, error)
-	Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...SourceOpt) error
+	Read(ctx context.Context, opts ...SourceOpt) (PatchInterface, error)
+	Write(ctx context.Context, data PatchInterface, opts ...SourceOpt) error
 
 	String() string
-}
-
-type Mapper[T any] interface {
-	FromPatchToModel(patch models.Rfc7396PatchOperation) (*T, error)
-	FromModelToPatch(*T) (models.Rfc7396PatchOperation, error)
 }
 
 func WithSecrets(secrets bool) SourceOpt {

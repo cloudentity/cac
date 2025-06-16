@@ -2,7 +2,6 @@ package storage_test
 
 import (
 	"context"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -105,6 +104,9 @@ post_logout_redirect_uris: []
 request_uris: []
 require_pushed_authorization_requests: false
 rotated_secrets: []
+saml_allowed_attributes: []
+saml_metadata_updated_at: 0001-01-01T00:00:00.000Z
+saml_override_attributes: false
 scopes: []
 system: false
 tls_client_certificate_bound_access_tokens: false
@@ -229,7 +231,8 @@ name: Some Gateway`, string(bts))
                 "workspaces/demo/pools/Some_Pool.yaml",
             },
             assert: func(t *testing.T, path string, bts []byte) {
-                require.YAMLEq(t, `deleted: false
+                require.YAMLEq(t, `allow_skip_2fa: false
+deleted: false
 id: some-pool
 identifier_case_insensitive: false
 mfa_session_ttl: 0s
@@ -585,7 +588,8 @@ name: Some IDP
 static_amr: []
 version: 0`, string(bts))
                 case "workspaces/demo/pools/Some_Pool.yaml":
-                    require.YAMLEq(t, `deleted: false
+                    require.YAMLEq(t, `allow_skip_2fa: false
+deleted: false
 id: some-pool
 identifier_case_insensitive: false
 mfa_session_ttl: 0s
@@ -594,25 +598,6 @@ public_registration_allowed: false
 second_factor_threshold: 0
 system: false`, string(bts))
                 }
-            },
-        },
-        {
-            desc: "secrets",
-            data: &models.TreeServer{
-                Secrets: models.TreeSecrets{
-                    "Some_secret": models.TreeSecret{
-                        CreatedAt: dateTime,
-                        Secret: "test",
-                    },
-                },
-            },
-            files: []string{
-                "workspaces/demo/secrets/Some_secret.yaml",
-            },
-            assert: func(t *testing.T, path string, bts []byte) {
-                    require.YAMLEq(t, `created_at: 2024-01-23T23:19:30.004+01:00
-id: Some_secret
-secret: test`, string(bts))
             },
         },
     }
@@ -634,27 +619,12 @@ secret: test`, string(bts))
             patchData, err := utils.FromModelToPatch(tc.data)
             require.NoError(t, err)
 
-            err = st.Write(context.Background(), patchData, api.WithWorkspace("demo"))
+            err = st.Write(context.Background(), &api.ServerPatch{
+                Data: patchData,
+            }, api.WithWorkspace("demo"))
             require.NoError(t, err)
 
-            var files []string
-
-            for _, dir := range st.Config.DirPath {
-                err = filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
-                    if err != nil {
-                        return err
-                    }
-
-                    if !info.IsDir() {
-                        if path, err = filepath.Rel(dir, path); err != nil {
-                            return err
-                        }
-
-                        files = append(files, path)
-                    }
-                    return nil
-                })
-            }
+            files, err := storage.ListFilesInDirectories(st.Config.DirPath...)
 
             require.NoError(t, err)
             require.ElementsMatch(t, slices.Compact(append(tc.files, "workspaces/demo/server.yaml")), files)
@@ -670,7 +640,7 @@ secret: test`, string(bts))
                 }
             }
 
-            var readServer models.Rfc7396PatchOperation
+            var readServer api.PatchInterface
             readServer, err = st.Read(context.Background(),
                 api.WithWorkspace("demo"),
                 api.WithFilters(tc.filters))
@@ -682,7 +652,9 @@ secret: test`, string(bts))
             patchData, err = utils.FilterPatch(patchData, tc.filters)
             require.NoError(t, err)
 
-            d, err := diff.Tree(patchData, readServer)
+            d, err := diff.Tree(&api.ServerPatch{
+                Data: patchData,
+            }, readServer)
             require.NoError(t, err)
             require.Empty(t, d)
         })

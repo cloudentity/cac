@@ -4,18 +4,21 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
+
 	"github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/acp-client-go/clients/hub/client/workspace_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	smodels "github.com/cloudentity/acp-client-go/clients/system/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
-	"net/http"
 )
 
 type Client struct {
 	acp *acpclient.Client
+	sec *SecretsClient
 }
 
 var _ api.Source = &Client{}
@@ -43,14 +46,19 @@ func InitClient(config *Configuration) (c *Client, err error) {
 
 	return &Client{
 		acp: &acp,
+		sec: &SecretsClient{
+			acp: &acp,
+		},
 	}, nil
 }
 
-func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
 	var (
 		options   = &api.Options{}
 		ok        *workspace_configuration.ExportWorkspaceConfigOK
+		secrets   map[string]*smodels.Secret
 		data      models.Rfc7396PatchOperation
+		ext       = api.ServerExtensions{}
 		workspace string
 		err       error
 	)
@@ -72,6 +80,7 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc739
 			WithWithCredentials(&options.Secrets).
 			WithTid(c.acp.Config.TenantID).
 			WithWid(workspace), nil); err != nil {
+		logErr(err)
 		return nil, err
 	}
 
@@ -79,14 +88,25 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc739
 		return nil, errors.Wrap(err, "failed to convert tree server to patch")
 	}
 
+	if options.Secrets {
+		if secrets, err = c.sec.ListAllAsMap(ctx, workspace); err != nil {
+			return nil, errors.Wrap(err, "failed to list secrets")
+		}
+
+		ext.Secrets = secrets
+	}
+
 	if data, err = utils.FilterPatch(data, options.Filters); err != nil {
 		return nil, errors.Wrap(err, "failed to filter patch")
 	}
 
-	return data, nil
+	return &api.ServerPatch{
+		Data: data,
+		Ext:  &ext,
+	}, nil
 }
 
-func (c *Client) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (c *Client) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
 	var (
 		options   = &api.Options{}
 		workspace string
@@ -104,10 +124,12 @@ func (c *Client) Write(ctx context.Context, data models.Rfc7396PatchOperation, o
 	switch options.Method {
 	case "import":
 		if err = c.Import(ctx, workspace, options.Mode, data); err != nil {
+			logErr(err)
 			return err
 		}
 	case "patch":
 		if err = c.Patch(ctx, workspace, options.Mode, data); err != nil {
+			logErr(err)
 			return err
 		}
 	default:
@@ -117,7 +139,7 @@ func (c *Client) Write(ctx context.Context, data models.Rfc7396PatchOperation, o
 	return nil
 }
 
-func (c *Client) Patch(ctx context.Context, workspace string, mode string, data models.Rfc7396PatchOperation) error {
+func (c *Client) Patch(ctx context.Context, workspace string, mode string, data api.PatchInterface) error {
 	var (
 		err error
 	)
@@ -129,20 +151,20 @@ func (c *Client) Patch(ctx context.Context, workspace string, mode string, data 
 			WithWid(workspace).
 			WithTid(c.acp.Config.TenantID).
 			WithMode(&mode).
-			WithPatch(data), nil); err != nil {
+			WithPatch(data.GetData()), nil); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *Client) Import(ctx context.Context, workspace string, mode string, data models.Rfc7396PatchOperation) error {
+func (c *Client) Import(ctx context.Context, workspace string, mode string, data api.PatchInterface) error {
 	var (
 		err error
 		out *models.TreeServer
 	)
 
-	if out, err = utils.FromPatchToModel[models.TreeServer](data); err != nil {
+	if out, err = utils.FromPatchToModel[models.TreeServer](data.GetData()); err != nil {
 		return err
 	}
 
@@ -163,6 +185,7 @@ func (c *Client) Import(ctx context.Context, workspace string, mode string, data
 func (c *Client) Tenant() *TenantClient {
 	return &TenantClient{
 		acp: c.acp,
+		sec: c.sec,
 	}
 }
 

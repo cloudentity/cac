@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/pkg/errors"
 )
@@ -22,8 +22,20 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	)
 
 	if out == "-" {
-		slog.Debug("Writing to stdout")
-		delegatedWriter = stdWriter
+		logging.Trace("Writing to stdout")
+		delegatedWriter = func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+			var (
+				bts []byte
+				err error
+			)
+
+			if bts, err = utils.ToYaml(data); err != nil {
+				return err
+			}
+
+			_, err = os.Stdout.Write(bts)
+			return err
+		}
 	} else if out != "" {
 		var (
 			file *os.File
@@ -63,17 +75,17 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	}, nil
 }
 
-type WriterFunc func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error
+type WriterFunc func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error
 
-func (d *DryStorage) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (d *DryStorage) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
 	return d.DelegatedWriter(ctx, data, opts...)
 }
 
-func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
 	panic("read operation is not implemented for dry storage")
 }
 
-var stdWriter = func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+var stdWriter = func(ctx context.Context, data *api.Patch[any], opts ...api.SourceOpt) error {
 	var (
 		bts []byte
 		err error
@@ -87,7 +99,7 @@ var stdWriter = func(ctx context.Context, data models.Rfc7396PatchOperation, opt
 }
 
 var flatFileWriter = func(out string) WriterFunc {
-	return func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+	return func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
 		var (
 			bts []byte
 			err error

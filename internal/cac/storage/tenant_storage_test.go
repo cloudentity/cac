@@ -203,7 +203,10 @@ updated_at: 0001-01-01T00:00:00.000Z
             patchData, err := utils.FromModelToPatch(tc.data)
             require.NoError(t, err)
 
-            err = st.Write(context.Background(), patchData, api.WithWorkspace("demo"))
+            err = st.Write(context.Background(), &api.TenantPatch{
+                Data: patchData,
+                Ext: &api.TenantExtensions{},
+            }, api.WithWorkspace("demo"))
             require.NoError(t, err)
 
             var files []string
@@ -239,7 +242,7 @@ updated_at: 0001-01-01T00:00:00.000Z
                 }
             }
 
-            var readServer models.Rfc7396PatchOperation
+            var readServer api.PatchInterface
             readServer, err = st.Read(context.Background(),
                 api.WithWorkspace("demo"),
                 api.WithFilters(tc.filters))
@@ -250,7 +253,10 @@ updated_at: 0001-01-01T00:00:00.000Z
             patchData, err = utils.FilterPatch(patchData, tc.filters)
             require.NoError(t, err)
 
-            d, err := diff.Tree(patchData, readServer)
+            d, err := diff.Tree(&api.TenantPatch{
+                Data: patchData,
+                Ext: &api.TenantExtensions{},
+            }, readServer)
             require.NoError(t, err)
             require.Empty(t, d)
         })
