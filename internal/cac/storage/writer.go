@@ -2,14 +2,15 @@ package storage
 
 import (
 	"fmt"
-	"github.com/cloudentity/cac/internal/cac/utils"
 	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 
-	"golang.org/x/exp/slog"
+	"github.com/cloudentity/cac/internal/cac/logging"
+	"github.com/cloudentity/cac/internal/cac/utils"
+	"github.com/pkg/errors"
 )
 
 type Writer[T any] func(name string, it T) error
@@ -63,16 +64,16 @@ func writeFile[T any](data T, path string) error {
 	)
 
 	if reflect.ValueOf(data).IsZero() {
-		slog.Debug("skipping empty file", "path", path)
+		logging.Trace("skipping empty file", "path", path)
 		return nil
 	}
 
 	if writer, err = YAMLWriter[T](parent); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create YAML writer for path %s", parent)
 	}
 
 	if err = writer(filepath.Base(path), data); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write file %s", path)
 	}
 
 	return nil
@@ -84,7 +85,7 @@ func YAMLWriter[T any](dirPath string) (Writer[T], error) {
 		err error
 	)
 	if raw, err = RawWriter(dirPath); err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to create raw writer for path %s", dirPath)
 	}
 
 	return func(name string, it T) error {
@@ -96,13 +97,13 @@ func YAMLWriter[T any](dirPath string) (Writer[T], error) {
 		name += ".yaml"
 
 		if bts, err = utils.ToYaml(it); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to marshal %T to yaml", it)
 		}
 
 		bts = postProcessMultilineTemplates(bts)
 
 		if err = raw(name, bts); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to write yaml file %s", name)
 		}
 
 		return nil
@@ -120,7 +121,7 @@ func RawWriter(dirPath string) (Writer[[]byte], error) {
 			err  error
 		)
 
-		slog.Debug("writing file", "path", filepath.Join(dirPath, name), "data", string(bts))
+		logging.Trace("writing file", "path", filepath.Join(dirPath, name), "data", string(bts))
 
 		if name == "" {
 			return fmt.Errorf("file name cannot be empty")
@@ -133,16 +134,17 @@ func RawWriter(dirPath string) (Writer[[]byte], error) {
 		name = normalize(name)
 
 		if file, err = os.Create(filepath.Join(dirPath, name)); err != nil && !os.IsExist(err) {
-			return err
+			return errors.Wrapf(err, "failed to create file %s", filepath.Join(dirPath, name))
 		}
 
+		//nolint:errcheck
 		defer file.Close()
 
 		if _, err = file.Write(bts); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to write data to file %s", filepath.Join(dirPath, name))
 		}
 
-		slog.Debug("wrote file", "path", filepath.Join(dirPath, name), "data", string(bts))
+		logging.Trace("wrote file", "path", filepath.Join(dirPath, name), "data", string(bts))
 
 		return nil
 	}, nil

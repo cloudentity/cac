@@ -2,12 +2,12 @@ package diff
 
 import (
 	"context"
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"regexp"
+
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/exp/slog"
-	"regexp"
 )
 
 type Options struct {
@@ -57,6 +57,7 @@ var secretFields = []string{
 	"servers.*jwks", // workspace jwks (when comparing tenant config)
 	"webhooks.*api_key",
 	"mfa_methods.*auth",
+	"secrets.*secret",
 }
 
 var volatileFields = []string{
@@ -89,8 +90,8 @@ var filterSecretFields = fieldsFilter(secretFields)
 
 func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
 	var (
-		server1  models.Rfc7396PatchOperation
-		server2  models.Rfc7396PatchOperation
+		server1  api.Patch
+		server2  api.Patch
 		options  = &Options{}
 		readOpts []api.SourceOpt
 		err      error
@@ -123,7 +124,7 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 	return Tree(server1, server2, opts...)
 }
 
-func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperation, opts ...Option) (string, error) {
+func Tree(source api.Patch, target api.Patch, opts ...Option) (string, error) {
 	var (
 		options  = &Options{}
 		diffOpts = cmp.Options{}
@@ -134,22 +135,25 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		opt(options)
 	}
 
-	utils.CleanPatch(source)
-	utils.CleanPatch(target)
+	sdata := source.GetData()
+	tdata := target.GetData()
+
+	utils.CleanPatch(sdata)
+	utils.CleanPatch(tdata)
 
 	// marshaling structs to json and back to get proper field names in the comparison
-	if source, err = utils.NormalizePatch(source); err != nil {
+	if sdata, err = utils.NormalizePatch(sdata); err != nil {
 		return "", err
 	}
 
-	if target, err = utils.NormalizePatch(target); err != nil {
+	if tdata, err = utils.NormalizePatch(tdata); err != nil {
 		return "", err
 	}
 
 	if options.PresentAtSource {
-		for k := range target {
-			if tm, ok := target[k].(map[string]any); ok {
-				OnlyPresentKeys(source[k], tm)
+		for k := range tdata {
+			if tm, ok := tdata[k].(map[string]any); ok {
+				OnlyPresentKeys(sdata[k], tm)
 			}
 		}
 	}
@@ -162,7 +166,7 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		diffOpts = append(diffOpts, filterSecretFields)
 	}
 
-	var out = cmp.Diff(target, source, diffOpts)
+	var out = cmp.Diff(tdata, sdata, diffOpts)
 
 	if options.Color {
 		return colorize(out), nil

@@ -1,7 +1,9 @@
 package data
 
-import "github.com/cloudentity/acp-client-go/clients/hub/models"
+import (
+	"github.com/cloudentity/cac/internal/cac/api"
+)
 
 type ValidatorApi interface {
-	Validate(data *models.Rfc7396PatchOperation) error
+	Validate(data api.Patch) error
 }

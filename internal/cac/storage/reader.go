@@ -4,10 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/templates"
 	ccyaml "github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
-	"golang.org/x/exp/slog"
 )
 
 type ReadFileOpts struct {
@@ -30,25 +30,25 @@ func readFile(path string, opts ...ReadFileOpt) (map[string]any, error) {
 		path += ".yaml"
 	}
 	
-	slog.Debug("reading file", "path", path)
+	logging.Trace("reading file", "path", path)
 
 	if bts, err = templates.New(path).Render(); err != nil {
 		if os.IsNotExist(err) {
-			slog.Debug("file not found", "path", path)
+			logging.Trace("file not found", "path", path)
 			return out, nil
 		}
 
 		return out, errors.Wrapf(err, "failed to render template %s", path)
 	}
 
-	slog.Debug("read template", "path", path, "data", bts)
+	logging.Trace("read template", "path", path, "data", bts)
 
 	
 	if err = ccyaml.Unmarshal(bts, &out); err != nil {
 		return out, errors.Wrapf(err, "failed to unmarshal template %s", path)
 	}
 
-	slog.Debug("read yaml", "path", path, "out", out)
+	logging.Trace("read yaml", "path", path, "out", out)
 
 	return out, nil
 }
@@ -78,7 +78,7 @@ func readFiles(path string, opts ...ReadFileOpt) (map[string]any, error) {
 		)
 
 		if ext != ".yaml" && ext != ".yml" {
-			slog.Debug("skipping not yaml file", "name", name)
+			logging.Trace("skipping not yaml file", "name", name)
 			continue
 		}
 

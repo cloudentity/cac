@@ -2,9 +2,10 @@ package templates
 
 import (
 	"bytes"
-	"golang.org/x/exp/slog"
 	"os"
 	"text/template"
+
+	"github.com/cloudentity/cac/internal/cac/logging"
 )
 
 type Template struct {
@@ -27,7 +28,7 @@ func (t *Template) Render() ([]byte, error) {
 		return nil, err
 	}
 
-	slog.Debug("rendering template", "path", t.Path, "data", string(bts))
+	logging.Trace("rendering template", "path", t.Path, "data", string(bts))
 
 	if tmpl, err = template.New(t.Path).Funcs(functions(t)).Parse(string(bts)); err != nil {
 		return nil, err

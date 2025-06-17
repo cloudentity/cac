@@ -1,9 +1,12 @@
 package cmd
 
 import (
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	"os"
+
 	"github.com/cloudentity/cac/internal/cac"
 	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/utils"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 )
@@ -15,7 +18,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data models.Rfc7396PatchOperation
+				data api.Patch
 				err  error
 			)
 
@@ -39,9 +42,28 @@ var (
 				return err
 			}
 
-			if err = app.Storage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace)); err != nil {
-				return err
+			if pullConfig.Out == "" {
+				// default
+				if err = app.Storage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace), api.WithSecrets(pullConfig.WithSecrets)); err != nil {
+					return err
+				}
+			} else {
+				bts, err := utils.ToYaml(data)
+
+				if err != nil {
+					return errors.Wrap(err, "failed to marshal data to YAML")
+				}
+
+				if pullConfig.Out == "-" {
+					if _, err = os.Stdout.Write(bts); err != nil {
+						return errors.Wrap(err, "failed to write diff result to stdout")
+					}
+				} else if err = os.WriteFile(pullConfig.Out, bts, 0644); err != nil {
+					return errors.Wrap(err, "failed to write diff result to file")
+				}
 			}
+
+			slog.Info("Configuration pulled", "out", pullConfig.Out)
 
 			return nil
 		},
@@ -49,10 +71,12 @@ var (
 	pullConfig struct {
 		WithSecrets bool
 		Filters     []string
+		Out         string
 	}
 )
 
 func init() {
 	pullCmd.PersistentFlags().BoolVar(&pullConfig.WithSecrets, "with-secrets", false, "Pull secrets")
 	pullCmd.PersistentFlags().StringSliceVar(&pullConfig.Filters, "filter", []string{}, "Pull only selected resources")
+	pullCmd.PersistentFlags().StringVar(&pullConfig.Out, "out", "", "Pull output. It can be a file or '-' for stdout")
 }

@@ -7,6 +7,7 @@ import (
 	acpclient "github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/acp-client-go/clients/hub/client/tenant_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
+	smodels "github.com/cloudentity/acp-client-go/clients/system/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"golang.org/x/exp/slog"
@@ -14,14 +15,18 @@ import (
 
 type TenantClient struct {
 	acp *acpclient.Client
+	sec *SecretsClient
 }
 
-func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
 		ok      *tenant_configuration.ExportTenantConfigOK
 		options = &api.Options{}
 		data    models.Rfc7396PatchOperation
-		err     error
+		ext     = api.TenantExtensions{
+			Servers: make(map[string]api.ServerExtensions),
+		}
+		err error
 	)
 
 	for _, opt := range opts {
@@ -34,21 +39,42 @@ func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (models.
 		WithTid(t.acp.Config.TenantID).
 		WithWithCredentials(&options.Secrets), nil,
 	); err != nil {
+		logErr(err)
 		return nil, err
 	}
 
-	if data, err = utils.FromModelToPatch[models.TreeTenant](ok.Payload); err != nil {
+	if data, err = utils.FromModelToPatch(ok.Payload); err != nil {
 		return nil, err
+	}
+
+	if options.Secrets {
+		for id := range ok.Payload.Servers {
+			var secrets map[string]*smodels.Secret
+
+			slog.Info("Pulling all server secrets", "server", id)
+			if secrets, err = t.sec.ListAllAsMap(ctx, id); err != nil {
+				return nil, fmt.Errorf("failed to list secrets for server %s: %w", id, err)
+			}
+
+			slog.Info("Pulled secrets", "server", id, "count", len(secrets))
+
+			ext.Servers[id] = api.ServerExtensions{
+				Secrets: secrets,
+			}
+		}
 	}
 
 	if data, err = utils.FilterPatch(data, options.Filters); err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	return &api.TenantPatch{
+		Data: data,
+		Ext:  &ext,
+	}, nil
 }
 
-func (t *TenantClient) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (t *TenantClient) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		options = &api.Options{}
 		err     error
@@ -60,11 +86,13 @@ func (t *TenantClient) Write(ctx context.Context, data models.Rfc7396PatchOperat
 
 	switch options.Method {
 	case "import":
-		if err = t.Import(ctx, options.Mode, data); err != nil {
+		if err = t.Import(ctx, options.Mode, data.GetData()); err != nil {
+			logErr(err)
 			return err
 		}
 	case "patch":
-		if err = t.Patch(ctx, options.Mode, data); err != nil {
+		if err = t.Patch(ctx, options.Mode, data.GetData()); err != nil {
+			logErr(err)
 			return err
 		}
 	default:
@@ -103,6 +131,7 @@ func (t *TenantClient) Patch(ctx context.Context, mode string, data models.Rfc73
 		WithMode(&mode).
 		WithPatch(data), nil,
 	); err != nil {
+		logErr(err)
 		return err
 	}
 

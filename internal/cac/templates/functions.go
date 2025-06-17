@@ -2,12 +2,12 @@ package templates
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
+	"github.com/cloudentity/cac/internal/cac/logging"
 	zb32 "github.com/corvus-ch/zbase32"
 	"github.com/pkg/errors"
 
@@ -42,7 +42,7 @@ func include(t *Template) func(string) (string, error) {
 		}
 
 		str = string(bts)
-		slog.Debug("including file", "path", fp, "data", str)
+		logging.Trace("including file", "path", fp, "data", str)
 
 		return str, nil
 	}
@@ -62,7 +62,7 @@ func env(key string) (any, error) {
 
 func nindent(spaces int, v string) string {
 	pad := strings.Repeat(" ", spaces)
-	return "|-\n" + pad + strings.Replace(v, "\n", "\n"+pad, -1)
+	return "|-\n" + pad + strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
 

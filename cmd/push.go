@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/storage"
@@ -17,7 +16,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data models.Rfc7396PatchOperation
+				data api.Patch
 				err  error
 			)
 
@@ -34,7 +33,7 @@ var (
 			}
 
 			if !pushConfig.NoLocalValidate {
-				if err = app.Validator.Validate(&data); err != nil {
+				if err = app.Validator.Validate(data); err != nil {
 					return errors.Wrap(err, "failed to validate configuration")
 				}
 			}
@@ -78,11 +77,11 @@ var (
 		},
 	}
 	pushConfig struct {
-		DryRun     bool
-		Out        string
-		Mode       string
-		Method     string
-		Filters    []string
+		DryRun          bool
+		Out             string
+		Mode            string
+		Method          string
+		Filters         []string
 		NoLocalValidate bool
 	}
 )

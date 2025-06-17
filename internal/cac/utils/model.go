@@ -25,6 +25,10 @@ func FromModelToPatch[T any](data *T) (models.Rfc7396PatchOperation, error) {
 }
 
 func FromPatchToModel[T any](patch models.Rfc7396PatchOperation) (*T, error) {
+	return FromPatchToModelWithOptions[T](patch, json.RejectUnknownMembers(true))
+}
+
+func FromPatchToModelWithOptions[T any](patch models.Rfc7396PatchOperation, unOpts... json.Options) (*T, error) {
 	var (
 		out = new(T)
 		bts []byte
@@ -37,7 +41,7 @@ func FromPatchToModel[T any](patch models.Rfc7396PatchOperation) (*T, error) {
 		return out, errors.Wrap(err, "failed to marshal patch to json")
 	}
 
-	if err = json.Unmarshal(bts, out, json.RejectUnknownMembers(true)); err != nil {
+	if err = json.Unmarshal(bts, out, unOpts...); err != nil {
 		return out, errors.Wrapf(err, "failed to unmarshal json to %T", out)
 	}
 
@@ -62,8 +66,8 @@ func NormalizePatch(patch models.Rfc7396PatchOperation) (models.Rfc7396PatchOper
 	return out, nil
 }
 
-// CleanPatch cleans fields that are available in system model but not available in hub model
 func CleanPatch(patch models.Rfc7396PatchOperation) {
+	// clean fields that are available in system model but not available in hub model
 	delete(patch, "id")
 	delete(patch, "tenant_id")
 }

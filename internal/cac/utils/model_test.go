@@ -1,11 +1,12 @@
 package utils_test
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/stretchr/testify/require"
-	"reflect"
-	"testing"
 )
 
 func TestFilterPatch(t *testing.T) {

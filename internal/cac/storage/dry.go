@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
+	"github.com/cloudentity/cac/internal/cac/logging"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/pkg/errors"
 )
@@ -22,7 +22,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	)
 
 	if out == "-" {
-		slog.Debug("Writing to stdout")
+		logging.Trace("Writing to stdout")
 		delegatedWriter = stdWriter
 	} else if out != "" {
 		var (
@@ -34,6 +34,8 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 			return nil, err
 		} else if err == nil {
 			// file already exists
+
+			//nolint:errcheck
 			defer file.Close()
 
 			if info, err = file.Stat(); err != nil {
@@ -63,17 +65,17 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	}, nil
 }
 
-type WriterFunc func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error
+type WriterFunc func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error
 
-func (d *DryStorage) Write(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+func (d *DryStorage) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	return d.DelegatedWriter(ctx, data, opts...)
 }
 
-func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (models.Rfc7396PatchOperation, error) {
+func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	panic("read operation is not implemented for dry storage")
 }
 
-var stdWriter = func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+var stdWriter = func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		bts []byte
 		err error
@@ -87,7 +89,7 @@ var stdWriter = func(ctx context.Context, data models.Rfc7396PatchOperation, opt
 }
 
 var flatFileWriter = func(out string) WriterFunc {
-	return func(ctx context.Context, data models.Rfc7396PatchOperation, opts ...api.SourceOpt) error {
+	return func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 		var (
 			bts []byte
 			err error

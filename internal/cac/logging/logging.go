@@ -1,9 +1,14 @@
 package logging
 
 import (
-	"golang.org/x/exp/slog"
+	"context"
 	"os"
+	"strings"
+
+	"golang.org/x/exp/slog"
 )
+
+const LevelTrace slog.Level = -8
 
 var DefaultLoggingConfig = func() *Configuration {
 	return &Configuration{
@@ -33,7 +38,9 @@ func InitLogging(config *Configuration) (err error) {
 		logger *slog.Logger
 	)
 
-	if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil {
+	if strings.ToUpper(config.Level) == "TRACE" {
+		levelRef.Set(LevelTrace)
+	} else if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil {
 		return err
 	}
 
@@ -47,7 +54,11 @@ func InitLogging(config *Configuration) (err error) {
 	logger = slog.New(handler)
 	slog.SetDefault(logger)
 
-	slog.With("logger", logger).Debug("Initiated logging")
+	slog.With("level", levelRef.Level()).Debug("Initiated logging")
 
 	return nil
+}
+
+func Trace(msg string, args... any) {
+	slog.Log(context.TODO(), LevelTrace, msg, args...)
 }
