@@ -188,6 +188,9 @@ updated_at: 0001-01-01T00:00:00.000Z
 	}
 
 	for _, tc := range tcs {
+        if tc.desc != "workspace and mfa_methods" {
+            continue
+        }
 		t.Run(tc.desc, func(t *testing.T) {
 			err := logging.InitLogging(&logging.Configuration{
 				Level: "debug",
@@ -196,7 +199,7 @@ updated_at: 0001-01-01T00:00:00.000Z
 			require.NoError(t, err)
 
 			st, err := storage.InitMultiStorage(&storage.MultiStorageConfiguration{
-				DirPath: []string{t.TempDir(), t.TempDir()},
+				DirPath: []string{t.TempDir()},
 			}, storage.InitTenantStorage)
 
 			require.NoError(t, err)

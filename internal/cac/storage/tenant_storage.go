@@ -81,7 +81,7 @@ func (t *TenantStorage) Write(ctx context.Context, data api.Patch, opts ...api.S
 	}
 
 	for k, server := range model.Servers {
-		opts = append(opts, api.WithWorkspace(k))
+		wopts := append(opts, api.WithWorkspace(k))
 
 		var (
 			serverData models.Rfc7396PatchOperation
@@ -100,7 +100,7 @@ func (t *TenantStorage) Write(ctx context.Context, data api.Patch, opts ...api.S
 		if err = t.ServerStorage.Write(ctx, &api.ServerPatch{
 			Data: serverData,
 			Ext:  ext.GetServerExtensions(k),
-		}, opts...); err != nil {
+		}, wopts...); err != nil {
 			return err
 		}
 	}
@@ -194,15 +194,17 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pa
 		for _, workspace := range workspaces {
 			var workspaceConfig api.Patch
 
-			opts = append(opts, api.WithWorkspace(workspace), api.WithFilters([]string{}))
+			wopts := append(opts, api.WithWorkspace(workspace), api.WithFilters([]string{}))
 
-			if workspaceConfig, err = t.ServerStorage.Read(ctx, opts...); err != nil {
+			if workspaceConfig, err = t.ServerStorage.Read(ctx, wopts...); err != nil {
 				return nil, err
 			}
 
 			data := workspaceConfig.GetData()
 
 			utils.CleanPatch(data)
+
+            servers[workspace] = data
 		}
 
 		tenant["servers"] = servers
