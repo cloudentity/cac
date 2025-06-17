@@ -1,14 +1,13 @@
 module github.com/cloudentity/cac
 
-go 1.23.0
-
-toolchain go1.24.3
+go 1.24
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/cloudentity/acp-client-go v0.0.0-20250530113034-a2fab50491c3
 	github.com/corvus-ch/zbase32 v1.0.0
 	github.com/go-json-experiment/json v0.0.0-20240524174822-2d9f40f7385b
+	github.com/go-openapi/runtime v0.27.0
 	github.com/go-openapi/strfmt v0.22.0
 	github.com/goccy/go-yaml v1.12.0
 	github.com/google/go-cmp v0.6.0
@@ -36,7 +35,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/jsonreference v0.20.4 // indirect
 	github.com/go-openapi/loads v0.21.5 // indirect
-	github.com/go-openapi/runtime v0.27.0 // indirect
 	github.com/go-openapi/spec v0.20.14 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect
 	github.com/go-openapi/validate v0.22.6 // indirect
