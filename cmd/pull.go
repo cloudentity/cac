@@ -18,7 +18,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data api.PatchInterface
+				data api.Patch
 				err  error
 			)
 
@@ -43,7 +43,7 @@ var (
 			}
 
 			if pullConfig.Out == "" {
-				// default 
+				// default
 				if err = app.Storage.Write(cmd.Context(), data, api.WithWorkspace(rootConfig.Workspace), api.WithSecrets(pullConfig.WithSecrets)); err != nil {
 					return err
 				}

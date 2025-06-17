@@ -16,7 +16,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app  *cac.Application
-				data api.PatchInterface
+				data api.Patch
 				err  error
 			)
 
@@ -77,11 +77,11 @@ var (
 		},
 	}
 	pushConfig struct {
-		DryRun     bool
-		Out        string
-		Mode       string
-		Method     string
-		Filters    []string
+		DryRun          bool
+		Out             string
+		Mode            string
+		Method          string
+		Filters         []string
 		NoLocalValidate bool
 	}
 )

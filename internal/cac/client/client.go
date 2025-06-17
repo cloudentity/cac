@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cloudentity/acp-client-go"
+	acpclient "github.com/cloudentity/acp-client-go"
 	"github.com/cloudentity/acp-client-go/clients/hub/client/workspace_configuration"
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	smodels "github.com/cloudentity/acp-client-go/clients/system/models"
@@ -52,7 +52,7 @@ func InitClient(config *Configuration) (c *Client, err error) {
 	}, nil
 }
 
-func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
 		options   = &api.Options{}
 		ok        *workspace_configuration.ExportWorkspaceConfigOK
@@ -106,7 +106,7 @@ func (c *Client) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInte
 	}, nil
 }
 
-func (c *Client) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+func (c *Client) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		options   = &api.Options{}
 		workspace string
@@ -139,7 +139,7 @@ func (c *Client) Write(ctx context.Context, data api.PatchInterface, opts ...api
 	return nil
 }
 
-func (c *Client) Patch(ctx context.Context, workspace string, mode string, data api.PatchInterface) error {
+func (c *Client) Patch(ctx context.Context, workspace string, mode string, data api.Patch) error {
 	var (
 		err error
 	)
@@ -158,7 +158,7 @@ func (c *Client) Patch(ctx context.Context, workspace string, mode string, data 
 	return nil
 }
 
-func (c *Client) Import(ctx context.Context, workspace string, mode string, data api.PatchInterface) error {
+func (c *Client) Import(ctx context.Context, workspace string, mode string, data api.Patch) error {
 	var (
 		err error
 		out *models.TreeServer

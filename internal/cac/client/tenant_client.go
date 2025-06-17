@@ -18,7 +18,7 @@ type TenantClient struct {
 	sec *SecretsClient
 }
 
-func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
 		ok      *tenant_configuration.ExportTenantConfigOK
 		options = &api.Options{}
@@ -74,7 +74,7 @@ func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pat
 	}, nil
 }
 
-func (t *TenantClient) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+func (t *TenantClient) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		options = &api.Options{}
 		err     error

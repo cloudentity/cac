@@ -23,19 +23,19 @@ type TenantStorage struct {
 	ServerStorage Storage
 }
 
-func (t *TenantStorage) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+func (t *TenantStorage) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		path  = t.Config.DirPath
 		model *models.TreeTenant
 		err   error
 	)
 
-    slog.Debug("Writing tenant data",
-        "path", path,
-        "data", data.GetData(),
-        "extensions", data.GetExtensions(),
-        "workspace", opts,
-    )        
+	slog.Debug("Writing tenant data",
+		"path", path,
+		"data", data.GetData(),
+		"extensions", data.GetExtensions(),
+		"workspace", opts,
+	)
 
 	if model, err = utils.FromPatchToModel[models.TreeTenant](data.GetData()); err != nil {
 		return err
@@ -91,11 +91,11 @@ func (t *TenantStorage) Write(ctx context.Context, data api.PatchInterface, opts
 			return err
 		}
 
-        ext, ok := data.GetExtensions().(*api.TenantExtensions)
+		ext, ok := data.GetExtensions().(*api.TenantExtensions)
 
-        if !ok {
-            return errors.New("invalid extensions type, expected *api.TenantExtensions")
-        }
+		if !ok {
+			return errors.New("invalid extensions type, expected *api.TenantExtensions")
+		}
 
 		if err = t.ServerStorage.Write(ctx, &api.ServerPatch{
 			Data: serverData,
@@ -108,11 +108,11 @@ func (t *TenantStorage) Write(ctx context.Context, data api.PatchInterface, opts
 	return nil
 }
 
-func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
 		path       = t.Config.DirPath
 		tenant     models.Rfc7396PatchOperation
-        ext        = api.TenantExtensions{}
+		ext        = api.TenantExtensions{}
 		options    = &api.Options{}
 		themeDirs  []string
 		workspaces []string
@@ -192,7 +192,7 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pa
 		var servers = map[string]any{}
 
 		for _, workspace := range workspaces {
-			var workspaceConfig api.PatchInterface
+			var workspaceConfig api.Patch
 
 			opts = append(opts, api.WithWorkspace(workspace), api.WithFilters([]string{}))
 
@@ -200,9 +200,9 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pa
 				return nil, err
 			}
 
-            data := workspaceConfig.GetData()
+			data := workspaceConfig.GetData()
 
-            utils.CleanPatch(data)
+			utils.CleanPatch(data)
 		}
 
 		tenant["servers"] = servers
@@ -213,9 +213,9 @@ func (t *TenantStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pa
 	}
 
 	return &api.TenantPatch{
-        Data: tenant,
-        Ext:  &ext,
-    }, nil
+		Data: tenant,
+		Ext:  &ext,
+	}, nil
 }
 
 var _ Storage = &TenantStorage{}

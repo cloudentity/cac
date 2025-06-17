@@ -11,7 +11,7 @@ type ServerValidator struct{}
 
 var _ ValidatorApi = &ServerValidator{}
 
-func (sv *ServerValidator) Validate(data api.PatchInterface) error {
+func (sv *ServerValidator) Validate(data api.Patch) error {
 	var (
 		err   error
 		serv  *models.TreeServer

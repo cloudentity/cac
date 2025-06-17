@@ -23,7 +23,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 
 	if out == "-" {
 		logging.Trace("Writing to stdout")
-		delegatedWriter = func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+		delegatedWriter = func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 			var (
 				bts []byte
 				err error
@@ -75,17 +75,17 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 	}, nil
 }
 
-type WriterFunc func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error
+type WriterFunc func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error
 
-func (d *DryStorage) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+func (d *DryStorage) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	return d.DelegatedWriter(ctx, data, opts...)
 }
 
-func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	panic("read operation is not implemented for dry storage")
 }
 
-var stdWriter = func(ctx context.Context, data *api.Patch[any], opts ...api.SourceOpt) error {
+var stdWriter = func(ctx context.Context, data *api.PatchImpl[any], opts ...api.SourceOpt) error {
 	var (
 		bts []byte
 		err error
@@ -99,7 +99,7 @@ var stdWriter = func(ctx context.Context, data *api.Patch[any], opts ...api.Sour
 }
 
 var flatFileWriter = func(out string) WriterFunc {
-	return func(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
+	return func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 		var (
 			bts []byte
 			err error

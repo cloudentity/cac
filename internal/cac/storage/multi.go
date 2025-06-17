@@ -49,22 +49,22 @@ var _ Storage = &MultiStorage{}
 var _ api.Source = &MultiStorage{}
 
 // Write for simplicity stores data in first storage only, it is responsibility of the user to move entities to other storages
-func (m *MultiStorage) Write(ctx context.Context, data api.PatchInterface, opts ...api.SourceOpt) error {
-	slog.Debug("Writing data to multi storage")	
+func (m *MultiStorage) Write(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
+	slog.Debug("Writing data to multi storage")
 	return m.Storages[0].Write(ctx, data, opts...)
 }
 
 // Read data from all storages and merge them
-func (m *MultiStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (m *MultiStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
-		data api.PatchInterface
+		data api.Patch
 		err  error
 	)
 
 	slog.Debug("Reading data from multi storage")
 
 	for i := len(m.Storages) - 1; i >= 0; i-- {
-		var data2 api.PatchInterface
+		var data2 api.Patch
 
 		if data2, err = m.Storages[i].Read(ctx, opts...); err != nil {
 			return nil, errors.Wrap(err, "failed to read data from storage")

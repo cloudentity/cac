@@ -5,5 +5,5 @@ import (
 )
 
 type ValidatorApi interface {
-	Validate(data api.PatchInterface) error
+	Validate(data api.Patch) error
 }

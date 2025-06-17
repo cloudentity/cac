@@ -26,18 +26,20 @@ func (te *TenantExtensions) GetServerExtensions(serverID string) *ServerExtensio
 	return nil
 }
 
-type Patch[T any] struct {
+type Patch interface {
+	GetData() models.Rfc7396PatchOperation
+	GetExtensions() any
+	Merge(other Patch) error
+}
+
+type PatchImpl[T any] struct {
 	Data models.Rfc7396PatchOperation `json:"data,omitempty"`
 	Ext  *T                           `json:"ext,omitempty"`
 }
 
-type PatchInterface interface {
-	GetData() models.Rfc7396PatchOperation
-	GetExtensions() any
-	Merge(other PatchInterface) error
-}
+type ServerPatch PatchImpl[ServerExtensions]
 
-type ServerPatch Patch[ServerExtensions]
+var _ Patch = &ServerPatch{}
 
 func (sp *ServerPatch) GetData() models.Rfc7396PatchOperation {
 	return sp.Data
@@ -45,7 +47,7 @@ func (sp *ServerPatch) GetData() models.Rfc7396PatchOperation {
 func (tp *ServerPatch) GetExtensions() any {
 	return tp.Ext
 }
-func (sp *ServerPatch) Merge(other PatchInterface) error {
+func (sp *ServerPatch) Merge(other Patch) error {
 	if err := mergo.Merge(&sp.Data, other.GetData(), mergo.WithOverride); err != nil {
 		return err
 	}
@@ -57,7 +59,7 @@ func (sp *ServerPatch) Merge(other PatchInterface) error {
 	return nil
 }
 
-type TenantPatch Patch[TenantExtensions]
+type TenantPatch PatchImpl[TenantExtensions]
 
 func (tp *TenantPatch) GetData() models.Rfc7396PatchOperation {
 	return tp.Data
@@ -65,7 +67,7 @@ func (tp *TenantPatch) GetData() models.Rfc7396PatchOperation {
 func (tp *TenantPatch) GetExtensions() any {
 	return tp.Ext
 }
-func (sp *TenantPatch) Merge(other PatchInterface) error {
+func (sp *TenantPatch) Merge(other Patch) error {
 	if err := mergo.Merge(&sp.Data, other.GetData(), mergo.WithOverride); err != nil {
 		return err
 	}

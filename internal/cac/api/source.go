@@ -36,8 +36,8 @@ type Options struct {
 type SourceOpt func(*Options)
 
 type Source interface {
-	Read(ctx context.Context, opts ...SourceOpt) (PatchInterface, error)
-	Write(ctx context.Context, data PatchInterface, opts ...SourceOpt) error
+	Read(ctx context.Context, opts ...SourceOpt) (Patch, error)
+	Write(ctx context.Context, data Patch, opts ...SourceOpt) error
 
 	String() string
 }

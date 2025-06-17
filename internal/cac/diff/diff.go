@@ -2,11 +2,12 @@ package diff
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/exp/slog"
-	"regexp"
 )
 
 type Options struct {
@@ -89,8 +90,8 @@ var filterSecretFields = fieldsFilter(secretFields)
 
 func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
 	var (
-		server1  api.PatchInterface
-		server2  api.PatchInterface
+		server1  api.Patch
+		server2  api.Patch
 		options  = &Options{}
 		readOpts []api.SourceOpt
 		err      error
@@ -123,7 +124,7 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 	return Tree(server1, server2, opts...)
 }
 
-func Tree(source api.PatchInterface, target api.PatchInterface, opts ...Option) (string, error) {
+func Tree(source api.Patch, target api.Patch, opts ...Option) (string, error) {
 	var (
 		options  = &Options{}
 		diffOpts = cmp.Options{}

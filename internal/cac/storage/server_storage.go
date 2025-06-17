@@ -36,7 +36,7 @@ type ServerStorage struct {
 var _ Storage = &ServerStorage{}
 var _ api.Source = &ServerStorage{}
 
-func (s *ServerStorage) Write(ctx context.Context, input api.PatchInterface, opts ...api.SourceOpt) error {
+func (s *ServerStorage) Write(ctx context.Context, input api.Patch, opts ...api.SourceOpt) error {
 	var (
 		workspacePath string
 		workspace     string
@@ -48,7 +48,7 @@ func (s *ServerStorage) Write(ctx context.Context, input api.PatchInterface, opt
 	for _, opt := range opts {
 		opt(options)
 	}
-	
+
 	slog.Debug("write server data", "options", options)
 
 	if workspace = options.Workspace; workspace == "" {
@@ -167,7 +167,7 @@ func (s *ServerStorage) Write(ctx context.Context, input api.PatchInterface, opt
 		for _, secret := range ext.Secrets {
 			secret.Secret = "" // clear the secret to avoid storing encrypted secrets in the storage
 		}
-			
+
 		if err = writeFiles(ext.Secrets,
 			filepath.Join(workspacePath, "secrets"),
 			func(id string, it *smodels.Secret) string { return id }); err != nil {
@@ -180,7 +180,7 @@ func (s *ServerStorage) Write(ctx context.Context, input api.PatchInterface, opt
 	return nil
 }
 
-func (s *ServerStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.PatchInterface, error) {
+func (s *ServerStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch, error) {
 	var (
 		path      string
 		workspace string

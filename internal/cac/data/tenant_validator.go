@@ -11,7 +11,7 @@ type TenantValidator struct{}
 
 var _ ValidatorApi = &TenantValidator{}
 
-func (sv *TenantValidator) Validate(data api.PatchInterface) error {
+func (sv *TenantValidator) Validate(data api.Patch) error {
 	var (
 		err    error
 		tenant *models.TreeTenant
