@@ -38,9 +38,9 @@ func InitLogging(config *Configuration) (err error) {
 		logger *slog.Logger
 	)
 
-	if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil && strings.ToUpper(config.Level) == "TRACE" {
+	if strings.ToUpper(config.Level) == "TRACE" {
 		levelRef.Set(LevelTrace)
-	} else if err != nil {
+	} else if err = levelRef.UnmarshalText([]byte(config.Level)); err != nil {
 		return err
 	}
 
