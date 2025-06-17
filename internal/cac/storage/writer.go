@@ -137,6 +137,7 @@ func RawWriter(dirPath string) (Writer[[]byte], error) {
 			return errors.Wrapf(err, "failed to create file %s", filepath.Join(dirPath, name))
 		}
 
+		//nolint:errcheck
 		defer file.Close()
 
 		if _, err = file.Write(bts); err != nil {

@@ -62,7 +62,7 @@ func env(key string) (any, error) {
 
 func nindent(spaces int, v string) string {
 	pad := strings.Repeat(" ", spaces)
-	return "|-\n" + pad + strings.Replace(v, "\n", "\n"+pad, -1)
+	return "|-\n" + pad + strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
 

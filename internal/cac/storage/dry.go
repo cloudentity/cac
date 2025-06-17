@@ -23,19 +23,7 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 
 	if out == "-" {
 		logging.Trace("Writing to stdout")
-		delegatedWriter = func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
-			var (
-				bts []byte
-				err error
-			)
-
-			if bts, err = utils.ToYaml(data); err != nil {
-				return err
-			}
-
-			_, err = os.Stdout.Write(bts)
-			return err
-		}
+		delegatedWriter = stdWriter
 	} else if out != "" {
 		var (
 			file *os.File
@@ -46,6 +34,8 @@ func InitDryStorage(out string, constr Constructor) (*DryStorage, error) {
 			return nil, err
 		} else if err == nil {
 			// file already exists
+
+			//nolint:errcheck
 			defer file.Close()
 
 			if info, err = file.Stat(); err != nil {
@@ -85,7 +75,7 @@ func (d *DryStorage) Read(ctx context.Context, opts ...api.SourceOpt) (api.Patch
 	panic("read operation is not implemented for dry storage")
 }
 
-var stdWriter = func(ctx context.Context, data *api.PatchImpl[any], opts ...api.SourceOpt) error {
+var stdWriter = func(ctx context.Context, data api.Patch, opts ...api.SourceOpt) error {
 	var (
 		bts []byte
 		err error

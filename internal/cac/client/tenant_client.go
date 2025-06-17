@@ -48,7 +48,7 @@ func (t *TenantClient) Read(ctx context.Context, opts ...api.SourceOpt) (api.Pat
 	}
 
 	if options.Secrets {
-		for id, _ := range ok.Payload.Servers {
+		for id := range ok.Payload.Servers {
 			var secrets map[string]*smodels.Secret
 
 			slog.Info("Pulling all server secrets", "server", id)

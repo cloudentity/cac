@@ -78,7 +78,7 @@ func (s *SecretsClient) Update(ctx context.Context, wid string, payload models.S
 
 func (s *SecretsClient) UpdateAll(ctx context.Context, wid string, payload []models.Secret) error {
 	return s.patchAll(ctx, wid, payload, func(dest *models.Secret, source models.Secret) error {
-		dest = &source 
+		*dest = source 
 		return nil
 	})
 }

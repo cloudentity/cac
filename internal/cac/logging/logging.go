@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"os"
 	"strings"
 
@@ -59,5 +60,5 @@ func InitLogging(config *Configuration) (err error) {
 }
 
 func Trace(msg string, args... any) {
-	slog.Log(nil, LevelTrace, msg, args...)
+	slog.Log(context.TODO(), LevelTrace, msg, args...)
 }

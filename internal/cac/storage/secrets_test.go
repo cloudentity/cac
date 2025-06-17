@@ -83,7 +83,8 @@ func TestReadingSecrets(t *testing.T) {
 
 	require.NoError(t, err)
 
-	os.MkdirAll(tmpDir+"/workspaces/demo/secrets", 0755)
+	err = os.MkdirAll(tmpDir+"/workspaces/demo/secrets", 0755)
+	require.NoError(t, err)
 
 	err = os.WriteFile(tmpDir+"/workspaces/demo/secrets/Some_secret.yaml", yml, 0644)
 	require.NoError(t, err)
