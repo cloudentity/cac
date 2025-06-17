@@ -58,9 +58,7 @@ var (
 					if _, err = os.Stdout.Write(bts); err != nil {
 						return errors.Wrap(err, "failed to write diff result to stdout")
 					}
-				}
-
-				if err = os.WriteFile(pullConfig.Out, bts, 0644); err != nil {
+				} else if err = os.WriteFile(pullConfig.Out, bts, 0644); err != nil {
 					return errors.Wrap(err, "failed to write diff result to file")
 				}
 			}
