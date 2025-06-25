@@ -60,6 +60,7 @@ id: sms
 mechanism: sms`, string(bts))
                 case "workspaces/demo/server.yaml":
                     require.YAMLEq(t, `access_token_ttl: 10m0s
+authentication_mechanisms: []
 authorization_code_ttl: 0s
 backchannel_token_delivery_modes_supported: []
 backchannel_user_code_parameter_supported: false
@@ -81,6 +82,7 @@ pushed_authorization_request_ttl: 0s
 refresh_token_ttl: 0s
 require_pushed_authorization_requests: false
 rotated_secrets: []
+scope_claim_formats: []
 subject_identifier_types: []
 template: false
 tenant_id: ""
