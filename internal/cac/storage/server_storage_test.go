@@ -41,6 +41,7 @@ func TestStorage(t *testing.T) {
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 require.YAMLEq(t, `access_token_ttl: 10m0s
+authentication_mechanisms: []
 authorization_code_ttl: 0s
 backchannel_token_delivery_modes_supported: []
 backchannel_user_code_parameter_supported: false
@@ -62,6 +63,7 @@ pushed_authorization_request_ttl: 0s
 refresh_token_ttl: 0s
 require_pushed_authorization_requests: false
 rotated_secrets: []
+scope_claim_formats: []
 subject_identifier_types: []
 template: false
 tenant_id: ""
@@ -85,6 +87,7 @@ version: 0`, string(bts))
             },
             assert: func(t *testing.T, path string, bts []byte) {
                 require.YAMLEq(t, `application_types: []
+default_acr_values: []
 audience: []
 authorization_details_types: []
 backchannel_logout_session_required: false
@@ -102,6 +105,9 @@ post_logout_redirect_uris: []
 request_uris: []
 require_pushed_authorization_requests: false
 rotated_secrets: []
+saml_allowed_attributes: []
+saml_metadata_updated_at: 0001-01-01T00:00:00.000Z
+saml_override_attributes: false
 scopes: []
 system: false
 tls_client_certificate_bound_access_tokens: false
@@ -226,12 +232,14 @@ name: Some Gateway`, string(bts))
                 "workspaces/demo/pools/Some_Pool.yaml",
             },
             assert: func(t *testing.T, path string, bts []byte) {
-                require.YAMLEq(t, `deleted: false
+                require.YAMLEq(t, `allow_skip_2fa: false
+deleted: false
 id: some-pool
 identifier_case_insensitive: false
 mfa_session_ttl: 0s
 name: Some Pool
 public_registration_allowed: false
+second_factor_threshold: 0
 system: false`, string(bts))
             },
         },
@@ -581,12 +589,14 @@ name: Some IDP
 static_amr: []
 version: 0`, string(bts))
                 case "workspaces/demo/pools/Some_Pool.yaml":
-                    require.YAMLEq(t, `deleted: false
+                    require.YAMLEq(t, `allow_skip_2fa: false
+deleted: false
 id: some-pool
 identifier_case_insensitive: false
 mfa_session_ttl: 0s
 name: Some Pool
 public_registration_allowed: false
+second_factor_threshold: 0
 system: false`, string(bts))
                 }
             },
