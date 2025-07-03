@@ -2,12 +2,14 @@ package diff
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
 	"github.com/cloudentity/cac/internal/cac/utils"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"golang.org/x/exp/slog"
-	"regexp"
 )
 
 type Options struct {
@@ -87,7 +89,7 @@ var fieldsFilter = func(fields []string) cmp.Option {
 var filerVolatileFields = fieldsFilter(volatileFields)
 var filterSecretFields = fieldsFilter(secretFields)
 
-func Diff(ctx context.Context, source api.Source, target api.Source, workspace string, opts ...Option) (string, error) {
+func Diff(ctx context.Context, left api.Source, right api.Source, workspace string, opts ...Option) (string, error) {
 	var (
 		server1  models.Rfc7396PatchOperation
 		server2  models.Rfc7396PatchOperation
@@ -112,18 +114,18 @@ func Diff(ctx context.Context, source api.Source, target api.Source, workspace s
 		readOpts = append(readOpts, api.WithSecrets(true))
 	}
 
-	if server1, err = source.Read(ctx, readOpts...); err != nil {
+	if server1, err = left.Read(ctx, readOpts...); err != nil {
 		return "", err
 	}
 
-	if server2, err = target.Read(ctx, readOpts...); err != nil {
+	if server2, err = right.Read(ctx, readOpts...); err != nil {
 		return "", err
 	}
 
 	return Tree(server1, server2, opts...)
 }
 
-func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperation, opts ...Option) (string, error) {
+func Tree(left models.Rfc7396PatchOperation, right models.Rfc7396PatchOperation, opts ...Option) (string, error) {
 	var (
 		options  = &Options{}
 		diffOpts = cmp.Options{}
@@ -134,22 +136,22 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		opt(options)
 	}
 
-	utils.CleanPatch(source)
-	utils.CleanPatch(target)
+	utils.CleanPatch(left)
+	utils.CleanPatch(right)
 
 	// marshaling structs to json and back to get proper field names in the comparison
-	if source, err = utils.NormalizePatch(source); err != nil {
+	if left, err = utils.NormalizePatch(left); err != nil {
 		return "", err
 	}
 
-	if target, err = utils.NormalizePatch(target); err != nil {
+	if right, err = utils.NormalizePatch(right); err != nil {
 		return "", err
 	}
 
 	if options.PresentAtSource {
-		for k := range target {
-			if tm, ok := target[k].(map[string]any); ok {
-				OnlyPresentKeys(source[k], tm)
+		for k := range right {
+			if tm, ok := right[k].(map[string]any); ok {
+				OnlyPresentKeys(left[k], tm)
 			}
 		}
 	}
@@ -162,10 +164,14 @@ func Tree(source models.Rfc7396PatchOperation, target models.Rfc7396PatchOperati
 		diffOpts = append(diffOpts, filterSecretFields)
 	}
 
-	var out = cmp.Diff(target, source, diffOpts)
+	diffOpts = append(diffOpts, cmpopts.SortSlices(func(a, b string) bool {
+		return a < b
+	}))
+	
+	out := cmp.Diff(right, left, diffOpts)
 
 	if options.Color {
-		return colorize(out), nil
+		out = colorize(out)
 	}
 
 	return out, nil
