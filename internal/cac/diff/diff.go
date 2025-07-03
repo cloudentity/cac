@@ -3,6 +3,7 @@ package diff
 import (
 	"context"
 	"regexp"
+	"strconv"
 
 	"github.com/cloudentity/acp-client-go/clients/hub/models"
 	"github.com/cloudentity/cac/internal/cac/api"
@@ -166,6 +167,8 @@ func Tree(left models.Rfc7396PatchOperation, right models.Rfc7396PatchOperation,
 
 	diffOpts = append(diffOpts, cmpopts.SortSlices(func(a, b string) bool {
 		return a < b
+	}), cmpopts.EquateEmpty(), cmpopts.AcyclicTransformer("FloatAsString", func(i float64) string {
+		return strconv.FormatFloat(i, 'f', -1, 64)
 	}))
 	
 	out := cmp.Diff(right, left, diffOpts)
